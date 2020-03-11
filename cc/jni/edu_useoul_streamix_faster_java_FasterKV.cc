@@ -190,7 +190,7 @@ public:
     typedef ByteArrayKey key_t;
     typedef ByteArrayValue value_t;
 
-    DeleteContext(jbyte* key, uint64_t key_length, jbyte* value, uint64_t value_length)
+    DeleteContext(jbyte* key, uint64_t key_length, const jbyte* value, uint64_t value_length)
             : key_ {key, key_length}, value_ {value, value_length} {
     }
 
@@ -245,12 +245,12 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1java_FasterKV_read
         (JNIEnv *env, jobject object, jlong handle, jbyteArray key) {
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t>*>(handle);
     // Convert jbyteArray to uint8_t array
-    uint64_t len = env->GetArrayLength(key);
+    uint64_t key_len = env->GetArrayLength(key);
     jbyte* key_bytes = env->GetByteArrayElements(key, nullptr);
     auto callback = [](IAsyncContext* ctxt, Status result) {
         CallbackContext<ReadContext> context {ctxt};
     };
-    ReadContext context {key_bytes, len};
+    ReadContext context {key_bytes, key_len};
     Status result = fasterKv->Read(context, callback, 1);
     jbyteArray javaBytes = env->NewByteArray(context.output.length());
     env->SetByteArrayRegion(javaBytes, 0, context.output.length(), context.output.getBytes());
@@ -283,16 +283,23 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKV_upsert
  * Signature: ([B)V
  */
 JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKV_delete
-(JNIEnv * env, jobject object, jlong handle, jbyteArray key, jbyteArray value) {
+(JNIEnv * env, jobject object, jlong handle, jbyteArray key) {
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t>*>(handle);
     uint64_t key_len = env->GetArrayLength(key);
     jbyte* key_bytes = env->GetByteArrayElements(key, nullptr);
-    uint32_t value_len = env->GetArrayLength(value);
-    jbyte* value_bytes = env->GetByteArrayElements(value, nullptr);
+
+    // Need to read first because it is necessary to get the size of value for DeleteContext.
+    auto read_callback = [](IAsyncContext* ctxt, Status result) {
+        CallbackContext<ReadContext> context {ctxt};
+    };
+    ReadContext read_context {key_bytes, key_len};
+    fasterKv->Read(read_context, read_callback, 1);
+
     auto callback = [](IAsyncContext* ctxt, Status result) {
         CallbackContext<DeleteContext> context {ctxt};
     };
-    DeleteContext context {key_bytes, key_len, value_bytes, value_len};
+    DeleteContext context {key_bytes, key_len, read_context.output.getBytes(),
+                           static_cast<uint64_t>(read_context.output.length())};
     Status result = fasterKv->Delete(context, callback, 1);
 }
 
