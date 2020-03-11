@@ -110,6 +110,9 @@ private:
 class ReadContext: public IAsyncContext {
 public:
 
+    typedef ByteArrayKey key_t;
+    typedef ByteArrayValue value_t;
+
     ReadContext(jbyte* key, uint64_t key_length)
             : key_{key, key_length}, output{nullptr, 0} {
     }
@@ -143,6 +146,9 @@ public:
 class UpsertContext: public IAsyncContext {
 
 public:
+
+    typedef ByteArrayKey key_t;
+    typedef ByteArrayValue value_t;
 
     UpsertContext(jbyte* key, uint64_t key_length, jbyte* value, uint64_t value_length)
             : key_ {key, key_length}, value_ {value, value_length} {
@@ -181,6 +187,9 @@ private:
 class DeleteContext: public IAsyncContext {
 
 public:
+    typedef ByteArrayKey key_t;
+    typedef ByteArrayValue value_t;
+    
     DeleteContext(jbyte* key, uint64_t key_length)
             : key_ {key, key_length} {
     }
@@ -210,9 +219,14 @@ typedef FASTER::device::FileSystemDisk<handler_t, 33554432L> disk_t;
  * Signature: (IILjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_edu_useoul_streamix_faster_1java_FasterKV_open
-        (JNIEnv * jenv, jobject object, jint table_size, jint log_size, jstring filename) {
+        (JNIEnv * env, jobject object, jint table_size, jint log_size, jstring jfilename) {
+    const char *cstr = env->GetStringUTFChars(jfilename, nullptr);
+    std::string filename = std::string(cstr);
     FasterKv<ByteArrayKey, ByteArrayValue, disk_t>* fasterKv
-        = new FasterKv<ByteArrayKey, ByteArrayValue, disk_t>(table_size, log_size, filename);
+        = new FasterKv<ByteArrayKey, ByteArrayValue, disk_t>(
+                static_cast<uint64_t>(table_size),
+                static_cast<uint64_t>(log_size),
+                filename);
     fasterKv->StartSession();
     return reinterpret_cast<jlong>(fasterKv);
 }
