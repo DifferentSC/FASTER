@@ -1,4 +1,5 @@
 find_package(JNI REQUIRED)
+find_package(FASTER REQUIRED)
 include_directories(${JNI_INCLUDE_DIRS})
 include_directories("../src/core")
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
