@@ -190,14 +190,18 @@ public:
     typedef ByteArrayKey key_t;
     typedef ByteArrayValue value_t;
 
-    DeleteContext(jbyte* key, uint64_t key_length)
-            : key_ {key, key_length} {
+    DeleteContext(jbyte* key, uint64_t key_length, jbyte* value, uint64_t value_length)
+            : key_ {key, key_length}, value_ {value, value_length} {
     }
+
     DeleteContext(const DeleteContext& other)
-            : key_ { other.key_ } {
+            : key_ { other.key_ }, value_ { other.value_ } {
     }
     inline const ByteArrayKey& key() const {
         return key_;
+    }
+    inline uint32_t value_size() const {
+        return value_.size();
     }
 
 protected:
@@ -208,6 +212,7 @@ protected:
 
 private:
     ByteArrayKey key_;
+    ByteArrayValue value_;
 };
 
 typedef FASTER::environment::QueueIoHandler handler_t;
@@ -262,9 +267,9 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKV_upsert
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t>*>(handle);
     // Convert jbyteArray to uint8_t array
     uint64_t key_len = env->GetArrayLength(key);
-    jbyte* key_bytes = env->GetByteArrayElements(key, NULL);
+    jbyte* key_bytes = env->GetByteArrayElements(key, nullptr);
     uint32_t value_len = env->GetArrayLength(value);
-    jbyte* value_bytes = env->GetByteArrayElements(value, NULL);
+    jbyte* value_bytes = env->GetByteArrayElements(value, nullptr);
     auto callback = [](IAsyncContext* ctxt, Status result) {
         CallbackContext<UpsertContext> context {ctxt};
     };
@@ -278,14 +283,16 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKV_upsert
  * Signature: ([B)V
  */
 JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKV_delete
-(JNIEnv * env, jobject object, jlong handle, jbyteArray key) {
+(JNIEnv * env, jobject object, jlong handle, jbyteArray key, jbyteArray value) {
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t>*>(handle);
     uint64_t key_len = env->GetArrayLength(key);
     jbyte* key_bytes = env->GetByteArrayElements(key, nullptr);
+    uint32_t value_len = env->GetArrayLength(value);
+    jbyte* value_bytes = env->GetByteArrayElements(value, nullptr);
     auto callback = [](IAsyncContext* ctxt, Status result) {
         CallbackContext<DeleteContext> context {ctxt};
     };
-    DeleteContext context {key_bytes, key_len};
+    DeleteContext context {key_bytes, key_len, value_bytes, value_len};
     Status result = fasterKv->Delete(context, callback, 1);
 }
 
