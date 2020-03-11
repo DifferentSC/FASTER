@@ -162,7 +162,7 @@ public:
         return key_;
     }
 
-    inline uint32_t value_size() {
+    inline uint32_t value_size() const {
         return value_.size();
     }
 
@@ -189,7 +189,7 @@ class DeleteContext: public IAsyncContext {
 public:
     typedef ByteArrayKey key_t;
     typedef ByteArrayValue value_t;
-    
+
     DeleteContext(jbyte* key, uint64_t key_length)
             : key_ {key, key_length} {
     }
