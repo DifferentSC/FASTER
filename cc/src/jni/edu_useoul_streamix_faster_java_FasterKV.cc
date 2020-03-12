@@ -4,7 +4,6 @@
 
 #include "edu_useoul_streamix_faster_java_FasterKV.h"
 #include "core/faster.h"
-#include "gtest/gtest.h"
 
 using namespace std;
 using namespace FASTER::core;
@@ -159,7 +158,7 @@ public:
     }
 
     inline void GetAtomic(const ByteArrayValue &value) {
-        ASSERT_TRUE (false);
+        cerr << "GetAtomic() is called!" << endl;
     }
 
 protected:
@@ -205,7 +204,7 @@ public:
     }
 
     inline bool PutAtomic(ByteArrayValue &value) {
-        cout << "PutAtmoc() is called!" << endl;
+        cerr << "PutAtomoc() is called!" << endl;
         return true;
     }
 
