@@ -198,7 +198,7 @@ public:
 
     inline void Put(ByteArrayValue &value) {
         for (uint32_t i = 0; i < value_.value_length_; i++) {
-            cerr << value_.buffer()[i];
+            cout << value_.buffer()[i];
         }
         cerr << endl;
         value = value_;
