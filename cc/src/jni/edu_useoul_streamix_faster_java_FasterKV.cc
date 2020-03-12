@@ -1,5 +1,6 @@
 #include <jni.h>
 #include <cstring>
+#include <iostream>
 
 #include "edu_useoul_streamix_faster_java_FasterKV.h"
 #include "core/faster.h"
@@ -11,6 +12,16 @@ class ByteArrayKey {
 public:
     ByteArrayKey(const jbyte *key, const uint64_t key_length)
             : temp_buffer{key}, key_length_{key_length} {
+    }
+
+    ByteArrayKey(const ByteArrayKey& other) {
+        key_length_ = other.key_length_;
+        temp_buffer = NULL;
+        if (other.temp_buffer == NULL) {
+            memcpy(buffer(), other.buffer(), key_length_);
+        } else {
+            memcpy(buffer(), other.temp_buffer, key_length_);
+        }
     }
 
     ~ByteArrayKey() {
@@ -62,6 +73,16 @@ class ByteArrayValue {
 public:
     ByteArrayValue(const jbyte *value, const uint64_t value_length)
             : temp_buffer{value}, value_length_{value_length} {
+    }
+
+    ByteArrayValue(const ByteArrayValue& other) {
+        value_length_ = other.value_length_;
+        temp_buffer = NULL;
+        if (other.temp_buffer == NULL) {
+            memcpy(buffer(), other.buffer(), value_length_);
+        } else {
+            memcpy(buffer(), other.temp_buffer, value_length_);
+        };
     }
 
     ~ByteArrayValue() {
@@ -133,8 +154,7 @@ public:
     }
 
     inline void Get(const ByteArrayValue &value) {
-        output.value_length_ = value.value_length_;
-        output.temp_buffer = value.buffer();
+        output = value;
     }
 
     inline void GetAtomic(const ByteArrayValue &value) {
@@ -176,8 +196,7 @@ public:
     }
 
     inline void Put(ByteArrayValue &value) {
-        value.value_length_ = value_.value_length_;
-        memcpy(value.buffer(), value_.buffer(), value_.value_length_);
+        value = value_;
     }
 
     inline bool PutAtomic(ByteArrayValue &value) {
@@ -283,6 +302,10 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_upsert
     jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
     uint32_t value_len = env->GetArrayLength(value);
     jbyte *value_bytes = env->GetByteArrayElements(value, nullptr);
+    for (uint32_t i = 0; i < value_len; i++) {
+        cout << value_bytes[i];
+    }
+    cout << endl;
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<UpsertContext> context{ctxt};
     };
