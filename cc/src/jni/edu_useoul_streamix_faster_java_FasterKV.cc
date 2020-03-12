@@ -3,9 +3,6 @@
 
 #include "edu_useoul_streamix_faster_java_FasterKV.h"
 #include "core/faster.h"
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 using namespace std;
 using namespace FASTER::core;
@@ -97,6 +94,10 @@ public:
         return memcmp(buffer(), other.buffer(), value_length_) != 0;
     }
 
+    inline const jbyte* getBuffer() const {
+        return temp_buffer;
+    }
+
     friend class ReadContext;
     friend class UpsertContext;
 
@@ -132,7 +133,7 @@ public:
     }
 
     inline void Get(const ByteArrayValue &value) {
-        output.value_length_ = value.value_length;
+        output.value_length_ = value.value_length_;
         output.temp_buffer = value.buffer();
     }
 
@@ -176,7 +177,7 @@ public:
 
     inline void Put(ByteArrayValue &value) {
         value.value_length_ = value_.value_length_;
-        memcopy(value.buffer(), value_.buffer(), value_.value_length_);
+        memcpy(value.buffer(), value_.buffer(), value_.value_length_);
     }
 
     inline bool PutAtomic(ByteArrayValue &value) {
@@ -265,7 +266,7 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_read
     ReadContext context{key_bytes, key_len};
     Status result = fasterKv->Read(context, callback, 1);
     jbyteArray javaBytes = env->NewByteArray(context.output.length());
-    env->SetByteArrayRegion(javaBytes, 0, context.output.length(), context.output.buffer());
+    env->SetByteArrayRegion(javaBytes, 0, context.output.length(), context.output.getBuffer());
     return javaBytes;
 }
 
@@ -310,7 +311,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_delete
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<DeleteContext> context{ctxt};
     };
-    DeleteContext context{key_bytes, key_len, read_context.output.getBytes(),
+    DeleteContext context{key_bytes, key_len, read_context.output.getBuffer(),
                           static_cast<uint64_t>(read_context.output.length())};
     Status result = fasterKv->Delete(context, callback, 1);
 }
@@ -326,6 +327,3 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKV_close
     fasterKv->StopSession();
     delete fasterKv;
 }
-#ifdef __cplusplus
-}
-#endif
