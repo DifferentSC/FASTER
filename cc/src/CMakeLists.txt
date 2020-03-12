@@ -68,5 +68,6 @@ include_directories(${JNI_INCLUDE_DIRS})
 set (FASTER_JNI_HEADERS jni/edu_useoul_streamix_faster_java_FasterKV.h)
 set (FASTER_JNI_SOURCES jni/edu_useoul_streamix_faster_java_FasterKV.cc)
 
+add_compile_options("-fPIC")
 add_library(fasterkv_jni SHARED ${FASTER_JNI_SOURCES} ${FASTER_SOURCES})
 target_link_libraries(fasterkv_jni ${FASTER_TEST_LINK_LIBS})
