@@ -100,6 +100,3 @@ add_subdirectory(benchmark-dir)
 add_subdirectory(playground)
 add_subdirectory(src)
 add_subdirectory(test)
-add_subdirectory(jni)
-
-set(LINK_TO_JNI fasterkv)

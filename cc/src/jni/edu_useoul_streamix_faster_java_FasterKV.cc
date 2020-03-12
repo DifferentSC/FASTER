@@ -35,6 +35,7 @@ public:
         }
         return memcmp(buffer(), other.buffer(), key_length_) == 0;
     }
+
     inline bool operator!=(const ByteArrayKey& other) const {
         if (this->key_length_ != other.key_length_) return true;
         if (this->temp_buffer != nullptr) {

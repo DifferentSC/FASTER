@@ -61,3 +61,11 @@ set (FASTER_SOURCES ${FASTER_SOURCES}
 endif()
 
 add_library(faster STATIC ${FASTER_SOURCES} ${FASTER_HEADERS})
+
+find_package(JNI REQUIRED)
+include_directories(${JNI_INCLUDE_DIRS})
+
+set (FASTER_JNI_HEADERS jni/edu_useoul_streamix_faster_java_FasterKV.h)
+set (FASTER_JNI_SOURCES jni/edu_useoul_streamix_faster_java_FasterKV.cc)
+
+add_library(fasterkv_jni SHARED ${FASTER_JNI_SOURCES} ${FASTER_JNI_HEADERS} ${FASTER_SOURCES} ${FASTER_HEADERS})
