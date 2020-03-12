@@ -158,7 +158,8 @@ public:
     }
 
     inline void GetAtomic(const ByteArrayValue &value) {
-        cerr << "GetAtomic() is called!" << endl;
+        // This runs on single-thread mode.
+        output = value;
     }
 
 protected:
@@ -196,15 +197,11 @@ public:
     }
 
     inline void Put(ByteArrayValue &value) {
-        for (uint32_t i = 0; i < value_.value_length_; i++) {
-            cout << value_.buffer()[i];
-        }
-        cerr << endl;
         value = value_;
     }
 
     inline bool PutAtomic(ByteArrayValue &value) {
-        cerr << "PutAtomoc() is called!" << endl;
+        value = value_;
         return true;
     }
 
