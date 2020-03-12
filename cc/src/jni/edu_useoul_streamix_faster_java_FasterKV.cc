@@ -1,4 +1,5 @@
 #include <jni.h>
+#include <cstdio>
 #include <cstring>
 #include <iostream>
 
@@ -197,11 +198,12 @@ public:
     }
 
     inline void Put(ByteArrayValue &value) {
-        value = value_;
+        PutInternal(value);
     }
 
     inline bool PutAtomic(ByteArrayValue &value) {
-        value = value_;
+        // Assume that the context is same.
+        PutInternal(value);
         return true;
     }
 
@@ -212,6 +214,16 @@ protected:
     }
 
 private:
+
+    inline void PutInternal(ByteArrayValue &value) {
+        value.value_length_ = value_.value_length_;
+        if (value_.temp_buffer != nullptr) {
+            memcpy(value.buffer(), value_.temp_buffer, value_.value_length_);
+        } else {
+            memcpy(value.buffer(), value_.getBuffer(), value_.value_length_);
+        }
+    }
+
     ByteArrayKey key_;
     ByteArrayValue value_;
 };
