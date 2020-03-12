@@ -72,24 +72,17 @@ private:
 
 class ByteArrayValue {
 public:
-    ByteArrayValue(const jbyte *value, const uint64_t value_length)
-            : temp_buffer{value}, value_length_{value_length} {
+    ByteArrayValue()
+            : value_length_(0) {
     }
 
     ByteArrayValue(const ByteArrayValue& other) {
         value_length_ = other.value_length_;
-        temp_buffer = NULL;
-        if (other.temp_buffer == NULL) {
-            memcpy(buffer(), other.buffer(), value_length_);
-        } else {
-            memcpy(buffer(), other.temp_buffer, value_length_);
-        };
+        memcpy(buffer(), other.buffer(), value_length_);
     }
 
     ~ByteArrayValue() {
-        if (this->temp_buffer != nullptr) {
-            free((void *) temp_buffer);
-        }
+
     }
 
     inline uint32_t size() const {
@@ -102,17 +95,11 @@ public:
 
     inline bool operator==(const ByteArrayValue &other) const {
         if (this->value_length_ != other.value_length_) return false;
-        if (this->temp_buffer != nullptr) {
-            return memcmp(temp_buffer, other.buffer(), value_length_) == 0;
-        }
         return memcmp(buffer(), other.buffer(), value_length_) == 0;
     }
 
     inline bool operator!=(const ByteArrayValue &other) const {
         if (this->value_length_ != other.value_length_) return true;
-        if (this->temp_buffer != nullptr) {
-            return memcmp(temp_buffer, other.buffer(), value_length_) != 0;
-        }
         return memcmp(buffer(), other.buffer(), value_length_) != 0;
     }
 
@@ -125,7 +112,6 @@ public:
 
 private:
     uint64_t value_length_;
-    const jbyte *temp_buffer;
 
     inline const jbyte *buffer() const {
         return reinterpret_cast<const jbyte *>(this + 1);
@@ -143,7 +129,7 @@ public:
     typedef ByteArrayValue value_t;
 
     ReadContext(jbyte *key, uint64_t key_length)
-            : key_{key, key_length}, output{nullptr, 0} {
+            : key_{key, key_length} {
     }
 
     ReadContext(const ReadContext &other)
@@ -182,11 +168,11 @@ public:
     typedef ByteArrayValue value_t;
 
     UpsertContext(jbyte *key, uint64_t key_length, jbyte *value, uint64_t value_length)
-            : key_{key, key_length}, value_{value, value_length} {
+            : key_{key, key_length}, value_byte_(value), length_(value_length) {
     }
 
     UpsertContext(const UpsertContext &other)
-            : key_{other.key_}, value_{other.value_} {
+            : key_{other.key_}, value_byte_(other.value_byte_), length_(other.length_) {
     }
 
     inline const ByteArrayKey &key() const {
@@ -194,7 +180,7 @@ public:
     }
 
     inline uint32_t value_size() const {
-        return value_.size();
+        return sizeof(ByteArrayValue) + length_;
     }
 
     inline void Put(ByteArrayValue &value) {
@@ -216,16 +202,13 @@ protected:
 private:
 
     inline void PutInternal(ByteArrayValue &value) {
-        value.value_length_ = value_.value_length_;
-        if (value_.temp_buffer != nullptr) {
-            memcpy(value.buffer(), value_.temp_buffer, value_.value_length_);
-        } else {
-            memcpy(value.buffer(), value_.getBuffer(), value_.value_length_);
-        }
+        value.value_length_ = length_;
+        memcpy(value.buffer(), value_byte_, length_);
     }
 
     ByteArrayKey key_;
-    ByteArrayValue value_;
+    jbyte* value_byte_;
+    uint64_t length_;
 };
 
 class DeleteContext : public IAsyncContext {
@@ -234,12 +217,12 @@ public:
     typedef ByteArrayKey key_t;
     typedef ByteArrayValue value_t;
 
-    DeleteContext(jbyte *key, uint64_t key_length, const jbyte *value, uint64_t value_length)
-            : key_{key, key_length}, value_{value, value_length} {
+    DeleteContext(jbyte *key, uint64_t key_length, uint64_t value_length)
+            : key_{key, key_length}, length_(value_length) {
     }
 
     DeleteContext(const DeleteContext &other)
-            : key_{other.key_}, value_{other.value_} {
+            : key_{other.key_}, length_(other.length_) {
     }
 
     inline const ByteArrayKey &key() const {
@@ -247,7 +230,7 @@ public:
     }
 
     inline uint32_t value_size() const {
-        return value_.size();
+        return sizeof(ByteArrayValue) + length_;
     }
 
 protected:
@@ -258,7 +241,7 @@ protected:
 
 private:
     ByteArrayKey key_;
-    ByteArrayValue value_;
+    uint64_t length_;
 };
 
 typedef FASTER::environment::QueueIoHandler handler_t;
@@ -348,8 +331,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_delete
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<DeleteContext> context{ctxt};
     };
-    DeleteContext context{key_bytes, key_len, read_context.output.getBuffer(),
-                          static_cast<uint64_t>(read_context.output.length())};
+    DeleteContext context{key_bytes, key_len, static_cast<uint64_t>(read_context.output.length())};
     Status result = fasterKv->Delete(context, callback, 1);
 }
 
