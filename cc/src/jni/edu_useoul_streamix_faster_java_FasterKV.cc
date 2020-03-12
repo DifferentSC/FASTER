@@ -4,6 +4,7 @@
 
 #include "edu_useoul_streamix_faster_java_FasterKV.h"
 #include "core/faster.h"
+#include "gtest/gtest.h"
 
 using namespace std;
 using namespace FASTER::core;
@@ -158,7 +159,7 @@ public:
     }
 
     inline void GetAtomic(const ByteArrayValue &value) {
-        // Atomic read does not happen.
+        ASSERT_TRUE (false);
     }
 
 protected:
@@ -204,7 +205,7 @@ public:
     }
 
     inline bool PutAtomic(ByteArrayValue &value) {
-        // Not called.
+        ASSERT_TRUE (false);
     }
 
 protected:
