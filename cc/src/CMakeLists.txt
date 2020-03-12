@@ -69,4 +69,4 @@ set (FASTER_JNI_HEADERS jni/edu_useoul_streamix_faster_java_FasterKV.h)
 set (FASTER_JNI_SOURCES jni/edu_useoul_streamix_faster_java_FasterKV.cc)
 
 add_compile_options("-fPIC")
-add_library(fasterkv_jni SHARED ${FASTER_JNI_SOURCES} ${FASTER_SOURCES})
+add_library(fasterkv_jni STATIC ${FASTER_JNI_SOURCES} ${FASTER_SOURCES})
