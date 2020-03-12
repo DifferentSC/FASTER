@@ -205,7 +205,8 @@ public:
     }
 
     inline bool PutAtomic(ByteArrayValue &value) {
-        ASSERT_TRUE (false);
+        cout << "PutAtmoc() is called!" << endl;
+        return ftrue;
     }
 
 protected:
