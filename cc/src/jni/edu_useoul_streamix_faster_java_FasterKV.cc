@@ -280,7 +280,8 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_read
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
     // Convert jbyteArray to uint8_t array
     uint64_t key_len = env->GetArrayLength(key);
-    jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
+    jbyte *key_bytes = (jbyte*) malloc(key_len);
+    memcpy(key_bytes, env->GetByteArrayElements(key, nullptr), key_len);
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<ReadContext> context{ctxt};
     };
@@ -301,9 +302,11 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_upsert
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
     // Convert jbyteArray to uint8_t array
     uint64_t key_len = env->GetArrayLength(key);
-    jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
+    jbyte *key_bytes = (jbyte*) malloc(key_len);
+    memcpy(key_bytes, env->GetByteArrayElements(key, nullptr), key_len);
     uint32_t value_len = env->GetArrayLength(value);
-    jbyte *value_bytes = env->GetByteArrayElements(value, nullptr);
+    jbyte *value_bytes = (jbyte*) malloc(value_len);
+    memcpy(value_bytes, env->GetByteArrayElements(value, nullptr), value_len);
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<UpsertContext> context{ctxt};
     };
@@ -320,7 +323,8 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_delete
         (JNIEnv *env, jobject object, jlong handle, jbyteArray key) {
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
     uint64_t key_len = env->GetArrayLength(key);
-    jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
+    jbyte *key_bytes = (jbyte*) malloc(key_len);
+    memcpy(key_bytes, env->GetByteArrayElements(key, nullptr), key_len);
 
     // Need to read first because it is necessary to get the size of value for DeleteContext.
     auto read_callback = [](IAsyncContext *ctxt, Status result) {
