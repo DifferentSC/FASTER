@@ -196,6 +196,10 @@ public:
     }
 
     inline void Put(ByteArrayValue &value) {
+        for (uint32_t i = 0; i < value_.value_length_; i++) {
+            cerr << value_.buffer()[i];
+        }
+        cerr << endl;
         value = value_;
     }
 
@@ -302,10 +306,6 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_upsert
     jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
     uint32_t value_len = env->GetArrayLength(value);
     jbyte *value_bytes = env->GetByteArrayElements(value, nullptr);
-    for (uint32_t i = 0; i < value_len; i++) {
-        cout << value_bytes[i];
-    }
-    cout << endl;
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<UpsertContext> context{ctxt};
     };
