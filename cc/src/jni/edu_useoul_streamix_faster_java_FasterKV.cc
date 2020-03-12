@@ -7,6 +7,7 @@
 extern "C" {
 #endif
 
+using namespace std;
 using namespace FASTER::core;
 
 class ByteArrayKey {
@@ -80,10 +81,6 @@ public:
         return static_cast<uint32_t>(value_length_);
     };
 
-    inline const jbyte *getBytes() {
-        return temp_buffer;
-    }
-
     inline bool operator==(const ByteArrayValue &other) const {
         if (this->value_length_ != other.value_length_) return false;
         if (this->temp_buffer != nullptr) {
@@ -99,6 +96,9 @@ public:
         }
         return memcmp(buffer(), other.buffer(), value_length_) != 0;
     }
+
+    friend class ReadContext;
+    friend class UpsertContext;
 
 private:
     uint64_t value_length_;
@@ -132,7 +132,8 @@ public:
     }
 
     inline void Get(const ByteArrayValue &value) {
-        output = value;
+        output.value_length_ = value.value_length;
+        output.temp_buffer = value.buffer();
     }
 
     inline void GetAtomic(const ByteArrayValue &value) {
@@ -174,7 +175,8 @@ public:
     }
 
     inline void Put(ByteArrayValue &value) {
-        value = value_;
+        value.value_length_ = value_.value_length_;
+        memcopy(value.buffer(), value_.buffer(), value_.value_length_);
     }
 
     inline bool PutAtomic(ByteArrayValue &value) {
@@ -263,7 +265,7 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_read
     ReadContext context{key_bytes, key_len};
     Status result = fasterKv->Read(context, callback, 1);
     jbyteArray javaBytes = env->NewByteArray(context.output.length());
-    env->SetByteArrayRegion(javaBytes, 0, context.output.length(), context.output.getBytes());
+    env->SetByteArrayRegion(javaBytes, 0, context.output.length(), context.output.buffer());
     return javaBytes;
 }
 
