@@ -95,7 +95,7 @@ public:
     }
 
     inline const jbyte* getBuffer() const {
-        return temp_buffer;
+        return buffer();
     }
 
     friend class ReadContext;
