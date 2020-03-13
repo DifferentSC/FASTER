@@ -12,13 +12,13 @@ using namespace FASTER::core;
 class ByteArrayKey {
 public:
     ByteArrayKey(const jbyte *key, const uint64_t key_length)
-            : temp_buffer{key}, key_length_{key_length} {
+            : temp_buffer {key}, key_length_{key_length} {
     }
 
     ByteArrayKey(const ByteArrayKey& other) {
         key_length_ = other.key_length_;
-        temp_buffer = NULL;
-        if (other.temp_buffer == NULL) {
+        temp_buffer = nullptr;
+        if (other.temp_buffer == nullptr) {
             memcpy(buffer(), other.buffer(), key_length_);
         } else {
             memcpy(buffer(), other.temp_buffer, key_length_);
@@ -129,7 +129,7 @@ public:
     typedef ByteArrayValue value_t;
 
     ReadContext(jbyte *key, uint64_t key_length)
-            : key_{key, key_length}, output(NULL), length(0) {
+            : key_{key, key_length}, output(nullptr), length(0) {
     }
 
     ReadContext(const ReadContext &other)
@@ -137,7 +137,7 @@ public:
     }
 
     ~ReadContext() {
-        if (output != NULL) {
+        if (output != nullptr) {
             free((void*)output);
         }
     }
@@ -153,7 +153,7 @@ public:
             memcpy(output, value.buffer(), value.value_length_);
         } else {
             length = 0;
-            output = NULL;
+            output = nullptr;
         }
     }
 
@@ -190,8 +190,10 @@ public:
     }
 
     ~UpsertContext() {
+        if (value_byte_ != nullptr) {}
         free(value_byte_);
     }
+
 
     inline const ByteArrayKey &key() const {
         return key_;
@@ -300,8 +302,8 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_read
     };
     ReadContext context{key_bytes, key_len};
     Status result = fasterKv->Read(context, callback, 1);
-    if (context.output == NULL) {
-        return NULL;
+    if (result == Status::NotFound) {
+        return nullptr;
     } else {
         jbyteArray javaBytes = env->NewByteArray(context.length);
         env->SetByteArrayRegion(javaBytes, 0, context.length, context.output);
@@ -332,7 +334,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_upsert
 }
 
 /*
- * Class:     edu_useoul_streamix_faster_java_FasterKV
+ * Class:     edu_useoul_streamix_faster_java_FasterKv
  * Method:    delete
  * Signature: ([B)V
  */
