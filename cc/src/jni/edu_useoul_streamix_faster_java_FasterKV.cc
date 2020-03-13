@@ -137,7 +137,7 @@ public:
     }
 
     ~ReadContext() {
-        if (output != nullptr) {
+        if (output != NULL) {
             free((void*)output);
         }
     }
