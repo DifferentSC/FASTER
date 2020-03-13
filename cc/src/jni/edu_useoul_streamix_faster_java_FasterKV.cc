@@ -141,7 +141,8 @@ public:
     }
 
     inline void Get(const ByteArrayValue &value) {
-        output = value;
+        output.value_length_ = value.value_length_;
+        memcpy(output.buffer(), value.buffer(), value.value_length_);
     }
 
     inline void GetAtomic(const ByteArrayValue &value) {
