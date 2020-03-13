@@ -239,7 +239,7 @@ public:
             : key_{other.key_}, length_(other.length_) {
     }
 
-    inline const ByteArrayKey &key() const {
+    inline const ByteArrayKey& key() const {
         return key_;
     }
 
