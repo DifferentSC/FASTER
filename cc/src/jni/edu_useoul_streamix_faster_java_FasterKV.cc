@@ -26,9 +26,7 @@ public:
     }
 
     ~ByteArrayKey() {
-        if (this->temp_buffer != nullptr) {
-            free((void *) temp_buffer);
-        }
+
     }
 
     inline uint32_t size() const {
@@ -133,7 +131,13 @@ public:
     }
 
     ReadContext(const ReadContext &other)
-            : key_{other.key_}, output{other.output}, length{other.length} {
+            : key_{other.key_}, length{other.length} {
+        if (other.length > 0) {
+            output = (jbyte*) malloc(other.length);
+            memcpy(output, other.output, other.length);
+        } else {
+            output = nullptr;
+        }
     }
 
     ~ReadContext() {
@@ -190,8 +194,6 @@ public:
     }
 
     ~UpsertContext() {
-        if (value_byte_ != nullptr) {}
-        free(value_byte_);
     }
 
 
@@ -204,12 +206,13 @@ public:
     }
 
     inline void Put(ByteArrayValue &value) {
-        PutInternal(value);
+        value.value_length_ = length_;
+        memcpy(value.buffer(), value_byte_, length_);
     }
 
     inline bool PutAtomic(ByteArrayValue &value) {
-        // Assume that the context is same.
-        PutInternal(value);
+        // Assume no concurrent put.
+        Put(value);
         return true;
     }
 
@@ -220,11 +223,6 @@ protected:
     }
 
 private:
-
-    inline void PutInternal(ByteArrayValue &value) {
-        value.value_length_ = length_;
-        memcpy(value.buffer(), value_byte_, length_);
-    }
 
     ByteArrayKey key_;
     jbyte* value_byte_;
@@ -303,8 +301,10 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_read
     ReadContext context{key_bytes, key_len};
     Status result = fasterKv->Read(context, callback, 1);
     if (result == Status::NotFound) {
+        free(key_bytes);
         return nullptr;
     } else {
+        free(key_bytes);
         jbyteArray javaBytes = env->NewByteArray(context.length);
         env->SetByteArrayRegion(javaBytes, 0, context.length, context.output);
         return javaBytes;
@@ -331,6 +331,8 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_upsert
     };
     UpsertContext context{key_bytes, key_len, value_bytes, value_len};
     Status result = fasterKv->Upsert(context, callback, 1);
+    free(key_bytes);
+    free(value_bytes);
 }
 
 /*
@@ -355,8 +357,9 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_delete
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<DeleteContext> context{ctxt};
     };
-    // DeleteContext context{key_bytes, key_len, static_cast<uint64_t>(read_context.length)};
-    // Status result = fasterKv->Delete(context, callback, 1);
+    DeleteContext context{key_bytes, key_len, static_cast<uint64_t>(read_context.length)};
+    Status result = fasterKv->Delete(context, callback, 1);
+    free(key_bytes);
 }
 
 /*
