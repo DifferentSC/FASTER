@@ -147,14 +147,14 @@ public:
     }
 
     inline void Get(const ByteArrayValue &value) {
+        length = value.value_length_;
         output = (jbyte*) malloc(value.value_length_);
         memcpy(output, value.buffer(), value.value_length_);
     }
 
     inline void GetAtomic(const ByteArrayValue &value) {
-        // No concurrent read happens.
-        output = (jbyte*) malloc(value.value_length_);
-        memcpy(output, value.buffer(), value.value_length_);
+        // No concurrent read happens - so just use Get()
+        Get(value);
     }
 
 protected:
