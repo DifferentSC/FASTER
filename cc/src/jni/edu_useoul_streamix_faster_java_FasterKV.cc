@@ -349,7 +349,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_delete
  * Method:    close
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKV_close
+JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_close
         (JNIEnv *env, jobject object, jlong handle) {
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
     fasterKv->StopSession();
