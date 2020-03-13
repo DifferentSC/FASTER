@@ -129,11 +129,11 @@ public:
     typedef ByteArrayValue value_t;
 
     ReadContext(jbyte *key, uint64_t key_length)
-            : key_{key, key_length} {
+            : key_{key, key_length}, output(NULL), length(0) {
     }
 
     ReadContext(const ReadContext &other)
-            : key_{other.key_}, output{other.output} {
+            : key_{other.key_}, output{other.output}, length{other.length} {
     }
 
     ~ReadContext() {
@@ -281,7 +281,7 @@ JNIEXPORT jlong JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_open
  */
 JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_read
         (JNIEnv *env, jobject object, jlong handle, jbyteArray key) {
-    auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
+    auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t>*>(handle);
     // Convert jbyteArray to uint8_t array
     uint64_t key_len = env->GetArrayLength(key);
     jbyte *key_bytes = (jbyte*) malloc(key_len);
