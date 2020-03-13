@@ -147,9 +147,14 @@ public:
     }
 
     inline void Get(const ByteArrayValue &value) {
-        length = value.value_length_;
-        output = (jbyte*) malloc(value.value_length_);
-        memcpy(output, value.buffer(), value.value_length_);
+        if (value.value_length_ != 0) {
+            length = value.value_length_;
+            output = (jbyte*) malloc(value.value_length_);
+            memcpy(output, value.buffer(), value.value_length_);
+        } else {
+            length = 0;
+            output = NULL;
+        }
     }
 
     inline void GetAtomic(const ByteArrayValue &value) {
@@ -291,9 +296,13 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_read
     };
     ReadContext context{key_bytes, key_len};
     Status result = fasterKv->Read(context, callback, 1);
-    jbyteArray javaBytes = env->NewByteArray(context.length);
-    env->SetByteArrayRegion(javaBytes, 0, context.length, context.output);
-    return javaBytes;
+    if (context.output == NULL) {
+        return NULL;
+    } else {
+        jbyteArray javaBytes = env->NewByteArray(context.length);
+        env->SetByteArrayRegion(javaBytes, 0, context.length, context.output);
+        return javaBytes;
+    }
 }
 
 /*
