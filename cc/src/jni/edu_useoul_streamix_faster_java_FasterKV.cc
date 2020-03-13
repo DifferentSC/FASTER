@@ -136,18 +136,25 @@ public:
             : key_{other.key_}, output{other.output} {
     }
 
+    ~ReadContext() {
+        if (output != nullptr) {
+            free((void*)output);
+        }
+    }
+
     inline const ByteArrayKey &key() const {
         return key_;
     }
 
     inline void Get(const ByteArrayValue &value) {
-        output.value_length_ = value.value_length_;
-        memcpy(output.buffer(), value.buffer(), value.value_length_);
+        output = (jbyte*) malloc(value.value_length_);
+        memcpy(output, value.buffer(), value.value_length_);
     }
 
     inline void GetAtomic(const ByteArrayValue &value) {
-        // This runs on single-thread mode.
-        output = value;
+        // No concurrent read happens.
+        output = (jbyte*) malloc(value.value_length_);
+        memcpy(output, value.buffer(), value.value_length_);
     }
 
 protected:
@@ -158,7 +165,8 @@ protected:
 private:
     ByteArrayKey key_;
 public:
-    ByteArrayValue output;
+    jbyte* output;
+    uint64_t length;
 };
 
 class UpsertContext : public IAsyncContext {
