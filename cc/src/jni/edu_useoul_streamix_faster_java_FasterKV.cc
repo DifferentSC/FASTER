@@ -355,7 +355,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_delete
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<DeleteContext> context{ctxt};
     };
-    DeleteContext context{key_bytes, key_len, static_cast<uint64_t>(read_context.length)};
+    // DeleteContext context{key_bytes, key_len, static_cast<uint64_t>(read_context.length)};
     // Status result = fasterKv->Delete(context, callback, 1);
 }
 
