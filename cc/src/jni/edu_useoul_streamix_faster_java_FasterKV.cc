@@ -293,18 +293,15 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_read
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t>*>(handle);
     // Convert jbyteArray to uint8_t array
     uint64_t key_len = env->GetArrayLength(key);
-    jbyte *key_bytes = (jbyte*) malloc(key_len);
-    memcpy(key_bytes, env->GetByteArrayElements(key, nullptr), key_len);
+    jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<ReadContext> context{ctxt};
     };
     ReadContext context{key_bytes, key_len};
     Status result = fasterKv->Read(context, callback, 1);
     if (result == Status::NotFound) {
-        free(key_bytes);
         return nullptr;
     } else {
-        free(key_bytes);
         jbyteArray javaBytes = env->NewByteArray(context.length);
         env->SetByteArrayRegion(javaBytes, 0, context.length, context.output);
         return javaBytes;
@@ -321,18 +318,14 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_upsert
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
     // Convert jbyteArray to uint8_t array
     uint64_t key_len = env->GetArrayLength(key);
-    jbyte *key_bytes = (jbyte*) malloc(key_len);
-    memcpy(key_bytes, env->GetByteArrayElements(key, nullptr), key_len);
+    jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
     uint32_t value_len = env->GetArrayLength(value);
-    jbyte *value_bytes = (jbyte*) malloc(value_len);
-    memcpy(value_bytes, env->GetByteArrayElements(value, nullptr), value_len);
+    jbyte *value_bytes = env->GetByteArrayElements(value, nullptr);
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<UpsertContext> context{ctxt};
     };
     UpsertContext context{key_bytes, key_len, value_bytes, value_len};
     Status result = fasterKv->Upsert(context, callback, 1);
-    free(key_bytes);
-    free(value_bytes);
 }
 
 /*
@@ -344,8 +337,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_delete
         (JNIEnv *env, jobject object, jlong handle, jbyteArray key) {
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
     uint64_t key_len = env->GetArrayLength(key);
-    jbyte *key_bytes = (jbyte*) malloc(key_len);
-    memcpy(key_bytes, env->GetByteArrayElements(key, nullptr), key_len);
+    jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
 
     // Need to read first because it is necessary to get the size of value for DeleteContext.
     auto read_callback = [](IAsyncContext *ctxt, Status result) {
@@ -359,7 +351,6 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_delete
     };
     DeleteContext context{key_bytes, key_len, static_cast<uint64_t>(read_context.length)};
     Status result = fasterKv->Delete(context, callback, 1);
-    free(key_bytes);
 }
 
 /*
