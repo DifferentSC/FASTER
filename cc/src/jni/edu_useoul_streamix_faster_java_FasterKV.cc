@@ -344,7 +344,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_delete
         CallbackContext<ReadContext> context{ctxt};
     };
     ReadContext read_context{key_bytes, key_len};
-    fasterKv->Read(read_context, read_callback, 1);
+    // fasterKv->Read(read_context, read_callback, 1);
 
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<DeleteContext> context{ctxt};
