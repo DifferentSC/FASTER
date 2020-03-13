@@ -291,8 +291,8 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_read
     };
     ReadContext context{key_bytes, key_len};
     Status result = fasterKv->Read(context, callback, 1);
-    jbyteArray javaBytes = env->NewByteArray(context.output.length());
-    env->SetByteArrayRegion(javaBytes, 0, context.output.length(), context.output.getBuffer());
+    jbyteArray javaBytes = env->NewByteArray(context.length);
+    env->SetByteArrayRegion(javaBytes, 0, context.length, context.output);
     return javaBytes;
 }
 
@@ -340,7 +340,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_delete
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<DeleteContext> context{ctxt};
     };
-    DeleteContext context{key_bytes, key_len, static_cast<uint64_t>(read_context.output.length())};
+    DeleteContext context{key_bytes, key_len, static_cast<uint64_t>(read_context.length)};
     Status result = fasterKv->Delete(context, callback, 1);
 }
 
