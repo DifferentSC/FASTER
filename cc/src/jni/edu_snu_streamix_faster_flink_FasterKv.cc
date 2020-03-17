@@ -3,7 +3,7 @@
 #include <cstring>
 #include <iostream>
 
-#include "edu_useoul_streamix_faster_java_FasterKV.h"
+#include "edu_snu_streamix_faster_flink_FasterKv.h"
 #include "core/faster.h"
 
 using namespace std;
@@ -266,11 +266,11 @@ typedef FASTER::environment::QueueIoHandler handler_t;
 typedef FASTER::device::FileSystemDisk<handler_t, 33554432L> disk_t;
 
 /*
- * Class:     edu_useoul_streamix_faster_java_FasterKv
+ * Class:     edu_snu_streamix_faster_flink_FasterKv
  * Method:    open
  * Signature: (IILjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_open
+JNIEXPORT jlong JNICALL Java_edu_snu_streamix_faster_1flink_FasterKv_open
         (JNIEnv *env, jobject object, jint table_size, jint log_size, jstring jfilename) {
     const char *cstr = env->GetStringUTFChars(jfilename, nullptr);
     std::string filename = std::string(cstr);
@@ -284,11 +284,11 @@ JNIEXPORT jlong JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_open
 }
 
 /*
- * Class:     edu_useoul_streamix_faster_java_FasterKv
+ * Class:     edu_snu_streamix_faster_flink_FasterKv
  * Method:    read
- * Signature: ([B)[B
+ * Signature: (J[B)[B
  */
-JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_read
+JNIEXPORT jbyteArray JNICALL Java_edu_snu_streamix_faster_1flink_FasterKv_read
         (JNIEnv *env, jobject object, jlong handle, jbyteArray key) {
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t>*>(handle);
     // Convert jbyteArray to uint8_t array
@@ -309,11 +309,11 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_read
 }
 
 /*
- * Class:     edu_useoul_streamix_faster_java_FasterKV
+ * Class:     edu_snu_streamix_faster_flink_FasterKv
  * Method:    upsert
- * Signature: ([B[B)[B
+ * Signature: (J[B[B)V
  */
-JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_upsert
+JNIEXPORT void JNICALL Java_edu_snu_streamix_faster_1flink_FasterKv_upsert
         (JNIEnv *env, jobject object, jlong handle, jbyteArray key, jbyteArray value) {
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
     // Convert jbyteArray to uint8_t array
@@ -329,11 +329,11 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_upsert
 }
 
 /*
- * Class:     edu_useoul_streamix_faster_java_FasterKv
+ * Class:     edu_snu_streamix_faster_flink_FasterKv
  * Method:    delete
- * Signature: ([B)V
+ * Signature: (J[B)V
  */
-JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_delete
+JNIEXPORT void JNICALL Java_edu_snu_streamix_faster_1flink_FasterKv_delete
         (JNIEnv *env, jobject object, jlong handle, jbyteArray key) {
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
     uint64_t key_len = env->GetArrayLength(key);
@@ -354,11 +354,11 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_delete
 }
 
 /*
- * Class:     edu_useoul_streamix_faster_java_FasterKv
+ * Class:     edu_snu_streamix_faster_flink_FasterKv
  * Method:    close
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1java_FasterKv_close
+JNIEXPORT void JNICALL Java_edu_snu_streamix_faster_1flink_FasterKv_close
         (JNIEnv *env, jobject object, jlong handle) {
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
     fasterKv->StopSession();
