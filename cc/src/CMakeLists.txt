@@ -65,8 +65,8 @@ add_library(faster STATIC ${FASTER_SOURCES} ${FASTER_HEADERS})
 find_package(JNI REQUIRED)
 include_directories(${JNI_INCLUDE_DIRS})
 
-set (FASTER_JNI_HEADERS jni/edu_snu_streamix_faster_flink_FasterKv.h)
-set (FASTER_JNI_SOURCES jni/edu_snu_streamix_faster_flink_FasterKv.cc)
+set (FASTER_JNI_HEADERS jni/edu_useoul_streamix_faster_flink_FasterKv.h)
+set (FASTER_JNI_SOURCES jni/edu_useoul_streamix_faster_flink_FasterKv.cc)
 
 add_library(fasterkv_jni SHARED ${FASTER_JNI_SOURCES} ${FASTER_SOURCES})
 set_property(TARGET fasterkv_jni PROPERTY POSITION_INDEPENDENT_CODE ON)

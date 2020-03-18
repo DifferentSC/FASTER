@@ -193,3 +193,7 @@ packages/
 *.lib
 nativebin/
 /cs/benchmark/Properties/launchSettings.json
+
+# CLion
+.idea
+cmake-build-debug
