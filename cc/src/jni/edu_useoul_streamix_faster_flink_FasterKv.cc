@@ -288,6 +288,7 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_rea
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t>*>(handle);
     // Convert jbyteArray to uint8_t array
     uint64_t key_len = env->GetArrayLength(key);
+    std::cout << key_len << std::endl;
     jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
     jbyte *copied_key_bytes = (jbyte*) malloc(key_len);
     memcpy(copied_key_bytes, key_bytes, key_len);
