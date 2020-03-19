@@ -141,13 +141,7 @@ public:
     }
 
     ReadContext(const ReadContext &other)
-            : key_{other.key_}, length{other.length} {
-        if (other.length > 0) {
-            output = (jbyte*) malloc(other.length);
-            memcpy(output, other.output, other.length);
-        } else {
-            output = nullptr;
-        }
+            : key_{other.key_}, output(nullptr), length(0) {
     }
 
     ~ReadContext() {
