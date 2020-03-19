@@ -1,5 +1,5 @@
 #include <jni.h>
-#include <cstdio>
+#include <cassert>
 #include <cstring>
 #include <iostream>
 
@@ -303,6 +303,7 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_rea
         env->SetByteArrayRegion(javaBytes, 0, context.length, context.output);
         return javaBytes;
     }
+    assert(result == Status::Ok);
 }
 
 /*
@@ -325,6 +326,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsert
     };
     UpsertContext context{copied_key_bytes, key_len, value_bytes, value_len};
     Status result = fasterKv->Upsert(context, callback, 1);
+    assert(result == Status::Ok);
 }
 
 /*
@@ -355,6 +357,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_delete
     };
     DeleteContext context{copied_copied_key_bytes, key_len, static_cast<uint64_t>(read_context.length)};
     Status result = fasterKv->Delete(context, callback, 1);
+    assert(result == Status::Ok);
 }
 
 /*
