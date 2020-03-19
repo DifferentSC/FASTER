@@ -328,7 +328,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsert
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<UpsertContext> context{ctxt};
     };
-    UpsertContext context{key_bytes, key_len, value_bytes, value_len};
+    UpsertContext context{copied_key_bytes, key_len, value_bytes, value_len};
     Status result = fasterKv->Upsert(copied_key_bytes, callback, 1);
 }
 
