@@ -13,7 +13,7 @@ extern "C" {
  * Signature: (IILjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_open
-  (JNIEnv *, jobject, jint, jint, jstring);
+  (JNIEnv *, jobject, jint, jlong, jstring);
 
 /*
  * Class:     edu_useoul_streamix_faster_flink_FasterKv

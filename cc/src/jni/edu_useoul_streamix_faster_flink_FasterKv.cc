@@ -266,7 +266,7 @@ typedef FASTER::device::FileSystemDisk<handler_t, 1073741824ull> disk_t;
  * Signature: (IILjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_open
-        (JNIEnv *env, jobject object, jint table_size, jint log_size, jstring jfilename) {
+        (JNIEnv *env, jobject object, jint table_size, jlong log_size, jstring jfilename) {
     const char *cstr = env->GetStringUTFChars(jfilename, nullptr);
     std::string filename = std::string(cstr);
     FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *fasterKv
