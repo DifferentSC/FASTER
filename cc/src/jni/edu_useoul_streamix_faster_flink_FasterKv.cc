@@ -49,7 +49,7 @@ public:
         }
         const jbyte* other_buffer;
         if (other.temp_buffer != nullptr) {
-            other_buffer = other.temp_buffer
+            other_buffer = other.temp_buffer;
         } else {
             other_buffer = other.buffer();
         }
