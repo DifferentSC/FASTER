@@ -41,10 +41,19 @@ public:
 
     inline bool operator==(const ByteArrayKey &other) const {
         if (this->key_length_ != other.key_length_) return false;
+        const jbyte* this_buffer;
         if (this->temp_buffer != nullptr) {
-            return memcmp(temp_buffer, other.buffer(), key_length_) == 0;
+            this_buffer = temp_buffer;
+        } else {
+            this_buffer = buffer();
         }
-        return memcmp(buffer(), other.buffer(), key_length_) == 0;
+        const jbyte* other_buffer;
+        if (other.temp_buffer != nullptr) {
+            other_buffer = other.temp_buffer
+        } else {
+            other_buffer = other.buffer();
+        }
+        return memcmp(this_buffer, other_buffer, key_length_) == 0;
     }
 
     inline bool operator!=(const ByteArrayKey &other) const {
