@@ -258,7 +258,7 @@ private:
 };
 
 typedef FASTER::environment::QueueIoHandler handler_t;
-typedef FASTER::device::FileSystemDisk<handler_t, 33554432L> disk_t;
+typedef FASTER::device::FileSystemDisk<handler_t, 1073741824ull> disk_t;
 
 /*
  * Class:     edu_useoul_streamix_faster_flink_FasterKv
