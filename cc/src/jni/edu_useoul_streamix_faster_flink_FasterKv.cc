@@ -329,7 +329,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsert
         CallbackContext<UpsertContext> context{ctxt};
     };
     UpsertContext context{copied_key_bytes, key_len, value_bytes, value_len};
-    Status result = fasterKv->Upsert(copied_key_bytes, callback, 1);
+    Status result = fasterKv->Upsert(context, callback, 1);
 }
 
 /*
