@@ -37,6 +37,7 @@ public:
         if (this->temp_buffer != nullptr) {
             return KeyHash(Utility::HashBytes(temp_buffer, static_cast<size_t>(key_length_)));
         }
+        return KeyHash(Utility::HashBytes(buffer(), static_cast<size_t>(key_length_)));
     }
 
     inline bool operator==(const ByteArrayKey &other) const {
