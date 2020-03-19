@@ -26,7 +26,7 @@ public:
     }
 
     ~ByteArrayKey() {
-
+        free((void*)temp_buffer);
     }
 
     inline uint32_t size() const {
@@ -294,10 +294,12 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_rea
     // Convert jbyteArray to uint8_t array
     uint64_t key_len = env->GetArrayLength(key);
     jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
+    jbyte *copied_key_bytes = (jbyte*) malloc(key_len);
+    memcpy(copied_key_bytes, key_bytes, key_len);
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<ReadContext> context{ctxt};
     };
-    ReadContext context{key_bytes, key_len};
+    ReadContext context{copied_key_bytes, key_len};
     Status result = fasterKv->Read(context, callback, 1);
     if (result == Status::NotFound) {
         return nullptr;
@@ -319,13 +321,15 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsert
     // Convert jbyteArray to uint8_t array
     uint64_t key_len = env->GetArrayLength(key);
     jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
+    jbyte *copied_key_bytes = (jbyte*) malloc(key_len);
+    memcpy(copied_key_bytes, key_bytes, key_len);
     uint32_t value_len = env->GetArrayLength(value);
     jbyte *value_bytes = env->GetByteArrayElements(value, nullptr);
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<UpsertContext> context{ctxt};
     };
     UpsertContext context{key_bytes, key_len, value_bytes, value_len};
-    Status result = fasterKv->Upsert(context, callback, 1);
+    Status result = fasterKv->Upsert(copied_key_bytes, callback, 1);
 }
 
 /*
@@ -338,18 +342,23 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_delete
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
     uint64_t key_len = env->GetArrayLength(key);
     jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
+    jbyte *copied_key_bytes = (jbyte*) malloc(key_len);
+    memcpy(copied_key_bytes, key_bytes, key_len);
 
     // Need to read first because it is necessary to get the size of value for DeleteContext.
     auto read_callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<ReadContext> context{ctxt};
     };
-    ReadContext read_context{key_bytes, key_len};
+    ReadContext read_context{copied_key_bytes, key_len};
     Status read_result = fasterKv->Read(read_context, read_callback, 1);
+
+    jbyte *copied_copied_key_bytes = (jbyte*) malloc(key_len);
+    memcpy(copied_copied_key_bytes, key_bytes, key_len);
 
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<DeleteContext> context{ctxt};
     };
-    DeleteContext context{key_bytes, key_len, static_cast<uint64_t>(read_context.length)};
+    DeleteContext context{copied_copied_key_bytes, key_len, static_cast<uint64_t>(read_context.length)};
     Status result = fasterKv->Delete(context, callback, 1);
 }
 
