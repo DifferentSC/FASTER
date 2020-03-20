@@ -30,7 +30,7 @@ public:
     ~ByteArrayKey() {
         std::cout << "Destructor for ByteArrayKey is called!" << std::endl;
         if (temp_buffer != nullptr) {
-            free((void *) temp_buffer);
+            // free((void *) temp_buffer);
         }
     }
 
