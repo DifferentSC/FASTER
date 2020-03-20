@@ -87,7 +87,6 @@ public:
     }
 
     inline uint32_t size() const {
-        std::cout << "size() is called = " << sizeof(ByteArrayValue) + value_length_ << std::endl;
         return static_cast<uint32_t>(sizeof(ByteArrayValue) + value_length_);
     }
 
@@ -296,6 +295,7 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_rea
     jbyte *copied_key_bytes = (jbyte*) malloc(key_len);
     memcpy(copied_key_bytes, key_bytes, key_len);
     auto callback = [](IAsyncContext *ctxt, Status result) {
+        std::cout << "Read callback is called!" << endl;
         CallbackContext<ReadContext> context{ctxt};
     };
     ReadContext context{copied_key_bytes, key_len};
