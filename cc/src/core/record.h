@@ -67,6 +67,7 @@ struct Record {
     void* buffer = const_cast<key_t*>(&key());
     std::cout << "Key size stored in record = " << key_.size() << std::endl;
     new(buffer)key_t{ key_ };
+    std::cout << "Copied key size in record = " << reinterpret_cast<key_t*>(buffer)->size() <<std::endl;
   }
 
   /// Key appears immediately after record header (subject to alignment padding). Keys are
