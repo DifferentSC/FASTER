@@ -30,7 +30,7 @@ public:
     ~ByteArrayKey() {
         std::cout << "Destructor for ByteArrayKey is called!" << std::endl;
         if (temp_buffer != nullptr) {
-            // free((void *) temp_buffer);
+            free((void *) temp_buffer);
         }
     }
 
@@ -46,6 +46,7 @@ public:
     }
 
     inline bool operator==(const ByteArrayKey &other) const {
+        std::cout << "other.key_length_ = " << other.key_length_ << std::endl;
         if (this->key_length_ != other.key_length_) return false;
         if (this->temp_buffer != nullptr) {
             return memcmp(temp_buffer, other.buffer(), key_length_) == 0;
