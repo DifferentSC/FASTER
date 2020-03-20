@@ -10,7 +10,7 @@
 using namespace std;
 using namespace FASTER::core;
 
-class ByteArrayKey {
+class alignas(8) ByteArrayKey {
 public:
     ByteArrayKey(const jbyte *key, const uint64_t key_length)
             : temp_buffer {key}, key_length_{key_length} {
@@ -76,7 +76,7 @@ private:
     }
 };
 
-class ByteArrayValue {
+class alignas(8) ByteArrayValue {
 public:
     ByteArrayValue()
             : value_length_(0) {
