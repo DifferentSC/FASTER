@@ -75,6 +75,7 @@ struct Record {
   inline constexpr const key_t& key() const {
     const uint8_t* head = reinterpret_cast<const uint8_t*>(this);
     size_t offset = pad_alignment(sizeof(RecordInfo), alignof(key_t));
+    std::cout << "alignment = " + alignof(key_t) << "offset for key = " << offset << std::endl;
     return *reinterpret_cast<const key_t*>(head + offset);
   }
 
