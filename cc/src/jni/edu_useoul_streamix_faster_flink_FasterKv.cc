@@ -17,6 +17,7 @@ public:
     }
 
     ByteArrayKey(const ByteArrayKey& other) {
+        std::cout << "Copy constructor for ByteArrayKey is called! key length = " << other.key_length_ << std::endl;
         key_length_ = other.key_length_;
         temp_buffer = nullptr;
         if (other.temp_buffer == nullptr) {
@@ -27,6 +28,7 @@ public:
     }
 
     ~ByteArrayKey() {
+        std::cout << "Destructor for ByteArrayKey is called!" << std::endl;
         if (temp_buffer != nullptr) {
             free((void *) temp_buffer);
         }
