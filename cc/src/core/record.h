@@ -4,6 +4,7 @@
 #pragma once
 
 #include <cassert>
+#include <cstdio>
 #include <cstdint>
 #include "address.h"
 #include "auto_ptr.h"
