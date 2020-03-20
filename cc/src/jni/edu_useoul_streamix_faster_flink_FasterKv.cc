@@ -5,6 +5,7 @@
 
 #include "edu_useoul_streamix_faster_flink_FasterKv.h"
 #include "core/faster.h"
+#include "device/null_disk.h"
 
 using namespace std;
 using namespace FASTER::core;
@@ -261,7 +262,8 @@ private:
 };
 
 typedef FASTER::environment::QueueIoHandler handler_t;
-typedef FASTER::device::FileSystemDisk<handler_t, 1073741824ull> disk_t;
+// typedef FASTER::device::FileSystemDisk<handler_t, 1073741824ull> disk_t;
+typedef FASTER::device::NullDisk disk_t;
 
 /*
  * Class:     edu_useoul_streamix_faster_flink_FasterKv
