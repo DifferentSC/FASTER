@@ -14,6 +14,7 @@ class ByteArrayKey {
 public:
     ByteArrayKey(const jbyte *key, const uint64_t key_length)
             : temp_buffer {key}, key_length_{key_length} {
+        std::cout << "Constructor for ByteArrayKey is called! key length = " << key_length << std::endl;
     }
 
     ByteArrayKey(const ByteArrayKey& other) {
