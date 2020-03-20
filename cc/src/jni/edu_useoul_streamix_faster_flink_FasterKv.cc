@@ -26,7 +26,7 @@ public:
     }
 
     ~ByteArrayKey() {
-        if (temp_buffer != null) {
+        if (temp_buffer != nullptr) {
             free((void *) temp_buffer);
         }
     }
