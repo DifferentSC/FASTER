@@ -98,6 +98,7 @@ struct Record {
   /// Size of a record to be created, in memory. (Includes padding, if any, after the value, so
   /// that the next record stored in the log is properly aligned.)
   static inline constexpr uint32_t size(const key_t& key_, uint32_t value_size) {
+    std::cout << "Value size stored in record = " << value_size << std::endl;
     return static_cast<uint32_t>(
              // --plus Value size, all padded to Header alignment.
              pad_alignment(value_size +

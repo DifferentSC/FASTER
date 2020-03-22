@@ -95,10 +95,6 @@ public:
         return static_cast<uint32_t>(sizeof(ByteArrayValue) + value_length_);
     }
 
-    inline uint32_t length() const {
-        return static_cast<uint32_t>(value_length_);
-    };
-
     inline bool operator==(const ByteArrayValue &other) const {
         if (this->value_length_ != other.value_length_) return false;
         return memcmp(buffer(), other.buffer(), value_length_) == 0;
