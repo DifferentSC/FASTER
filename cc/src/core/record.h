@@ -75,7 +75,7 @@ struct Record {
   inline constexpr const key_t& key() const {
     const uint8_t* head = reinterpret_cast<const uint8_t*>(this);
     size_t offset = pad_alignment(sizeof(RecordInfo), alignof(key_t));
-    std::cout << "alignment = " + alignof(key_t) << "offset for key = " << offset << std::endl;
+    // std::cout << "alignment = " + alignof(key_t) << "offset for key = " << offset << std::endl;
     return *reinterpret_cast<const key_t*>(head + offset);
   }
 
@@ -140,11 +140,13 @@ struct Record {
 
   /// Size of a record, on disk. (Excludes padding, if any, after the value.)
   inline constexpr uint32_t disk_size() const {
-    return static_cast<uint32_t>(value().size() +
-                                 pad_alignment(key().size() +
-                                     // Header, padded to Key alignment.
-                                     pad_alignment(sizeof(RecordInfo), alignof(key_t)),
-                                     alignof(value_t)));
+        uint32_t result = static_cast<uint32_t>(value().size() +
+                                            pad_alignment(key().size() +
+                                                          // Header, padded to Key alignment.
+                                                          pad_alignment(sizeof(RecordInfo), alignof(key_t)),
+                                                          alignof(value_t)));
+      std::cout << "disk_size() is called!" << result << std::endl;
+    return result;
   }
 
  public:
