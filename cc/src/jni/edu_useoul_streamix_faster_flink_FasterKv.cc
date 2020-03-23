@@ -15,16 +15,16 @@ public:
 
     ByteArrayKey()
             : temp_buffer {nullptr}, key_length_{0} {
-        std::cout << "Default ByteArrayKey constructor is called!" << std::endl;
+        //std::cout << "Default ByteArrayKey constructor is called!" << std::endl;
     }
 
     ByteArrayKey(const jbyte *key, const uint64_t key_length)
             : temp_buffer {key}, key_length_{key_length} {
-        std::cout << "Constructor for ByteArrayKey is called! key length = " << key_length << std::endl;
+        //std::cout << "Constructor for ByteArrayKey is called! key length = " << key_length << std::endl;
     }
 
     ByteArrayKey(const ByteArrayKey& other) {
-        std::cout << "Copy constructor for ByteArrayKey is called! key length = " << other.key_length_ << std::endl;
+        //std::cout << "Copy constructor for ByteArrayKey is called! key length = " << other.key_length_ << std::endl;
         key_length_ = other.key_length_;
         temp_buffer = nullptr;
         if (other.temp_buffer == nullptr) {
