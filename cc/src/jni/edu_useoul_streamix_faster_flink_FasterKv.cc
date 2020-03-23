@@ -35,7 +35,7 @@ public:
     }
 
     ~ByteArrayKey() {
-        std::cout << "Destructor for ByteArrayKey is called!" << std::endl;
+        // std::cout << "Destructor for ByteArrayKey is called!" << std::endl;
         if (temp_buffer != nullptr) {
             free((void *) temp_buffer);
         }
@@ -46,10 +46,14 @@ public:
     }
 
     inline KeyHash GetHash() const {
+        KeyHash result;
         if (this->temp_buffer != nullptr) {
-            return KeyHash(Utility::HashBytes(temp_buffer, static_cast<size_t>(key_length_)));
+            result = KeyHash(Utility::HashBytes(temp_buffer, static_cast<size_t>(key_length_)));
+        } else {
+            result = KeyHash(Utility::HashBytes(buffer(), static_cast<size_t>(key_length_)));
         }
-        return KeyHash(Utility::HashBytes(buffer(), static_cast<size_t>(key_length_)));
+        std::cout << "GetHash() is called! hash tag = " << result.tag() << std::endl;
+        return result;
     }
 
     inline bool operator==(const ByteArrayKey &other) const {
