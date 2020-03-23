@@ -86,12 +86,12 @@ private:
 class alignas(16) ByteArrayValue {
 public:
     ByteArrayValue()
-            : value_length_(0) {
+            : size_(0), length_(0) {
     }
 
     ByteArrayValue(const ByteArrayValue& other) {
-        value_length_ = other.value_length_;
-        memcpy(buffer(), other.buffer(), value_length_);
+        length_ = other.length_;
+        memcpy(buffer(), other.buffer(), length_);
     }
 
     ~ByteArrayValue() {
@@ -99,17 +99,17 @@ public:
     }
 
     inline uint32_t size() const {
-        return static_cast<uint32_t>(sizeof(ByteArrayValue) + value_length_);
+        return size_;
     }
 
     inline bool operator==(const ByteArrayValue &other) const {
-        if (this->value_length_ != other.value_length_) return false;
-        return memcmp(buffer(), other.buffer(), value_length_) == 0;
+        if (this->length_ != other.length_) return false;
+        return memcmp(buffer(), other.buffer(), length_) == 0;
     }
 
     inline bool operator!=(const ByteArrayValue &other) const {
-        if (this->value_length_ != other.value_length_) return true;
-        return memcmp(buffer(), other.buffer(), value_length_) != 0;
+        if (this->length_ != other.length_) return true;
+        return memcmp(buffer(), other.buffer(), length_) != 0;
     }
 
     inline const jbyte* getBuffer() const {
@@ -120,7 +120,8 @@ public:
     friend class UpsertContext;
 
 private:
-    uint64_t value_length_;
+    uint32_t size_;
+    uint32_t length_;
 
     inline const jbyte *buffer() const {
         return reinterpret_cast<const jbyte *>(this + 1);
@@ -156,10 +157,10 @@ public:
     }
 
     inline void Get(const ByteArrayValue &value) {
-        if (value.value_length_ != 0) {
-            length = value.value_length_;
-            output = (jbyte*) malloc(value.value_length_);
-            memcpy(output, value.buffer(), value.value_length_);
+        if (value.length_ != 0) {
+            length = value.length_;
+            output = (jbyte*) malloc(value.length_);
+            memcpy(output, value.buffer(), value.length_);
         } else {
             length = 0;
             output = nullptr;
@@ -212,7 +213,8 @@ public:
     }
 
     inline void Put(ByteArrayValue &value) {
-        value.value_length_ = length_;
+        value.size_ = sizeof(ByteArrayValue) + length_;
+        value.length_ = length_;
         memcpy(value.buffer(), value_byte_, length_);
     }
 
