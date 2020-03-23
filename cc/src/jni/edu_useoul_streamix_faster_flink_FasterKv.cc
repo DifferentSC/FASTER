@@ -353,6 +353,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsert
     };
     UpsertContext context{copied_key_bytes, key_len, value_bytes, value_len};
     Status result = fasterKv->Upsert(context, callback, 1);
+    fasterKv->CompletePending(true);
     // assert(result == Status::Ok);
 }
 
