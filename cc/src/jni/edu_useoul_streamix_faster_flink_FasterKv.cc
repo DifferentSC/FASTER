@@ -319,9 +319,9 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_rea
         CallbackContext<ReadContext> context{ctxt};
     };
     ReadContext context{copied_key_bytes, key_len};
-    // Complete pending before read - All the read should be done synchronously.
-    fasterKv->CompletePending(false);
     Status result = fasterKv->Read(context, callback, 1);
+    // Complete pending after read - All the read should be done synchronously.
+    fasterKv->CompletePending(true);
     if (result == Status::NotFound) {
         return nullptr;
     } else {
