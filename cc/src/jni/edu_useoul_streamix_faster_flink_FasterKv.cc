@@ -55,12 +55,11 @@ public:
     inline bool operator==(const ByteArrayKey &other) const {
         std::cout << "other.key_length_ = " << other.key_length_ << std::endl;
         if (this->key_length_ != other.key_length_) return false;
-        else return true;
-        /*
+
         if (this->temp_buffer != nullptr) {
             return memcmp(temp_buffer, other.buffer(), key_length_) == 0;
         }
-        return memcmp(buffer(), other.buffer(), key_length_) == 0;*/
+        return memcmp(buffer(), other.buffer(), key_length_) == 0;
     }
 
     inline bool operator!=(const ByteArrayKey &other) const {
@@ -382,6 +381,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_delete
  */
 JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_close
         (JNIEnv *env, jobject object, jlong handle) {
+    cout << "Close FasterKv Session..." << endl;
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
     fasterKv->StopSession();
     delete fasterKv;
