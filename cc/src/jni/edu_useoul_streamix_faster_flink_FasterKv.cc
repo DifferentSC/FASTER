@@ -216,6 +216,7 @@ public:
     }
 
     inline uint32_t value_size() const {
+        std::cout << "value_size() is called. return = " << sizeof(ByteArrayValue) + length_ << std::endl;
         return sizeof(ByteArrayValue) + length_;
     }
 

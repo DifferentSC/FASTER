@@ -65,9 +65,9 @@ struct Record {
   Record(RecordInfo header_, const key_t& key_)
     : header{ header_ } {
     void* buffer = const_cast<key_t*>(&key());
-    std::cout << "Key size stored in record = " << key_.size() << std::endl;
+    // std::cout << "Key size stored in record = " << key_.size() << std::endl;
     new(buffer)key_t{ key_ };
-    std::cout << "Copied key size in record = " << reinterpret_cast<key_t*>(buffer)->size() <<std::endl;
+    // std::cout << "Copied key size in record = " << reinterpret_cast<key_t*>(buffer)->size() <<std::endl;
   }
 
   /// Key appears immediately after record header (subject to alignment padding). Keys are
@@ -98,7 +98,7 @@ struct Record {
   /// Size of a record to be created, in memory. (Includes padding, if any, after the value, so
   /// that the next record stored in the log is properly aligned.)
   static inline constexpr uint32_t size(const key_t& key_, uint32_t value_size) {
-    std::cout << "Value size stored in record = " << value_size << std::endl;
+    // std::cout << "Value size stored in record = " << value_size << std::endl;
     return static_cast<uint32_t>(
              // --plus Value size, all padded to Header alignment.
              pad_alignment(value_size +
