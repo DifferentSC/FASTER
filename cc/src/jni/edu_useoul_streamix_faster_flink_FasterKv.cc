@@ -377,6 +377,8 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_delete
     ReadContext read_context{copied_key_bytes, key_len};
     Status read_result = fasterKv->Read(read_context, read_callback, 1);
 
+    fasterKv->CompletePending(true);
+
     jbyte *copied_copied_key_bytes = (jbyte*) malloc(key_len);
     memcpy(copied_copied_key_bytes, key_bytes, key_len);
 
@@ -386,6 +388,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_delete
     DeleteContext context{copied_copied_key_bytes, key_len, static_cast<uint64_t>(read_context.length)};
     Status result = fasterKv->Delete(context, callback, 1);
     assert(result == Status::Ok);
+    fasterKv->CompletePending(true);
 }
 
 /*
