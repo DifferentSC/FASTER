@@ -320,10 +320,11 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_rea
     };
     ReadContext context{copied_key_bytes, key_len};
     Status result = fasterKv->Read(context, callback, 1);
-    // Complete pending after read - All the read should be done synchronously.
-    fasterKv->CompletePending(true);
     if (result == Status::NotFound) {
         return nullptr;
+    } if (result == Status::Pending) {
+        fasterKv->CompletePending(true);
+        std::cout << "Status: Pending" << std::endl;
     } else {
         jbyteArray javaBytes = env->NewByteArray(context.length);
         env->SetByteArrayRegion(javaBytes, 0, context.length, context.output);
