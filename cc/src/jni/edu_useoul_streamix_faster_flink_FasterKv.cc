@@ -10,7 +10,7 @@
 using namespace std;
 using namespace FASTER::core;
 
-class alignas(16) ByteArrayKey {
+class ByteArrayKey {
 public:
 
     ByteArrayKey()
