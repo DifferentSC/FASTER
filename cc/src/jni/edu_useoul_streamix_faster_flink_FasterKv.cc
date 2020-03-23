@@ -10,7 +10,7 @@
 using namespace std;
 using namespace FASTER::core;
 
-class alignas(8) ByteArrayKey {
+class alignas(16) ByteArrayKey {
 public:
 
     ByteArrayKey()
@@ -83,7 +83,7 @@ private:
     }
 };
 
-class alignas(8) ByteArrayValue {
+class alignas(16) ByteArrayValue {
 public:
     ByteArrayValue()
             : value_length_(0) {
