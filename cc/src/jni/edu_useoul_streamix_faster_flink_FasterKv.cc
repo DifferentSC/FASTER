@@ -12,6 +12,12 @@ using namespace FASTER::core;
 
 class alignas(8) ByteArrayKey {
 public:
+
+    ByteArrayKey()
+            : temp_buffer {nullptr}, key_length_{0} {
+        std::cout << "Default ByteArrayKey constructor is called!" << std::endl;
+    }
+
     ByteArrayKey(const jbyte *key, const uint64_t key_length)
             : temp_buffer {key}, key_length_{key_length} {
         std::cout << "Constructor for ByteArrayKey is called! key length = " << key_length << std::endl;
