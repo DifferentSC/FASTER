@@ -169,7 +169,14 @@ public:
 
     inline void GetAtomic(const ByteArrayValue &value) {
         // No concurrent read happens - so just use Get()
-        Get(value);
+        if (value.length_ != 0) {
+            length = value.length_;
+            output = (jbyte*) malloc(value.length_);
+            memcpy(output, value.buffer(), value.length_);
+        } else {
+            length = 0;
+            output = nullptr;
+        }
     }
 
 protected:
@@ -220,7 +227,9 @@ public:
 
     inline bool PutAtomic(ByteArrayValue &value) {
         // Assume no concurrent put.
-        Put(value);
+        value.size_ = sizeof(ByteArrayValue) + length_;
+        value.length_ = length_;
+        memcpy(value.buffer(), value_byte_, length_);
         return true;
     }
 
