@@ -55,10 +55,12 @@ public:
     inline bool operator==(const ByteArrayKey &other) const {
         std::cout << "other.key_length_ = " << other.key_length_ << std::endl;
         if (this->key_length_ != other.key_length_) return false;
+        else return true;
+        /*
         if (this->temp_buffer != nullptr) {
             return memcmp(temp_buffer, other.buffer(), key_length_) == 0;
         }
-        return memcmp(buffer(), other.buffer(), key_length_) == 0;
+        return memcmp(buffer(), other.buffer(), key_length_) == 0;*/
     }
 
     inline bool operator!=(const ByteArrayKey &other) const {
