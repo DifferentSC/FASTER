@@ -439,8 +439,8 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_rea
     if (result == Status::NotFound) {
         return nullptr;
     } if (result == Status::Pending) {
-        fasterKv->CompletePending(true);
-        std::cout << "Status: Pending" << std::endl;
+        // fasterKv->CompletePending(true);
+        // std::cout << "Status: Pending" << std::endl;
     } else {
         jbyteArray javaBytes = env->NewByteArray(context.length);
         env->SetByteArrayRegion(javaBytes, 0, context.length, context.output);
@@ -459,7 +459,7 @@ void InternalDelete(FasterKv<ByteArrayKey, ByteArrayValue, disk_t>* fasterKv, jb
     ReadContext read_context{copied_key_bytes, key_len};
     Status read_result = fasterKv->Read(read_context, read_callback, 1);
 
-    fasterKv->CompletePending(true);
+    // fasterKv->CompletePending(true);
 
     jbyte *copied_copied_key_bytes = (jbyte*) malloc(key_len);
     memcpy(copied_copied_key_bytes, key_bytes, key_len);
@@ -493,7 +493,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsert
     };
     UpsertContext context{copied_key_bytes, key_len, value_bytes, value_len};
     Status result = fasterKv->Upsert(context, callback, 1);
-    fasterKv->CompletePending(true);
+    // fasterKv->CompletePending(true);
     // assert(result == Status::Ok);
 }
 
@@ -509,7 +509,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_delete
     uint64_t key_len = env->GetArrayLength(key);
     jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
     InternalDelete(fasterKv, key_bytes, key_len);
-    fasterKv->CompletePending(true);
+    // fasterKv->CompletePending(true);
 }
 
 /*
