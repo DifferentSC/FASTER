@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "edu_useoul_streamix_faster_flink_FasterKv.h"
+#include "murmur3.h"
 #include "core/faster.h"
 #include "device/null_disk.h"
 
@@ -118,13 +119,13 @@ public:
     }
 
     inline KeyHash GetHash() const {
-        KeyHash result;
+        uint32_t hash_value;
         if (this->temp_buffer != nullptr) {
-            result = SimpleHash(this->temp_buffer);
+            MurmurHash3_x86_32(static_cast<const void*>(temp_buffer), key_length_, 0, &hash_value);
         } else {
-            result = SimpleHash(buffer());
+            MurmurHash3_x86_32(static_cast<const void*>(buffer()), key_length_, 0, &hash_value);
         }
-        return result;
+        return KeyHash(static_cast<uint64_t>(hash_value));
     }
 
     inline bool operator==(const ByteArrayKey &other) const {
@@ -471,7 +472,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsert
  */
 JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_delete
         (JNIEnv *env, jobject object, jlong handle, jbyteArray key) {
-    /*
+
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
     uint64_t key_len = env->GetArrayLength(key);
     jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
@@ -485,9 +486,8 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_delete
     ReadContext read_context{copied_key_bytes, key_len};
     Status read_result = fasterKv->Read(read_context, read_callback, 1);
 
-    fasterKv->CompletePending(true);*/
+    fasterKv->CompletePending(true);
 
-    /*
     jbyte *copied_copied_key_bytes = (jbyte*) malloc(key_len);
     memcpy(copied_copied_key_bytes, key_bytes, key_len);
 
@@ -497,7 +497,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_delete
     DeleteContext context{copied_copied_key_bytes, key_len, static_cast<uint64_t>(read_context.length)};
     Status result = fasterKv->Delete(context, callback, 1);
     assert(result == Status::Ok);
-    fasterKv->CompletePending(true);*/
+    fasterKv->CompletePending(true);
 }
 
 /*

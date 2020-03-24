@@ -776,7 +776,7 @@ inline OperationStatus FasterKv<K, V, D>::InternalRead(C& pending_context) const
     // matches.
     const record_t* record = reinterpret_cast<const record_t*>(hlog.Get(address));
     latest_record_version = record->header.checkpoint_version;
-    std::cout << "Searching for address = " << address.control() << std::endl;
+    // std::cout << "Searching for address = " << address.control() << std::endl;
     if(key != record->key()) {
       address = TraceBackForKeyMatch(key, record->header.previous_address(), head_address);
     }
@@ -1310,7 +1310,7 @@ template <class K, class V, class D>
 inline Address FasterKv<K, V, D>::TraceBackForKeyMatch(const key_t& key, Address from_address,
     Address min_offset) const {
   while(from_address >= min_offset) {
-    std::cout << "Key match miss! next address = " << from_address.control() << std::endl;
+    // std::cout << "Key match miss! next address = " << from_address.control() << std::endl;
     const record_t* record = reinterpret_cast<const record_t*>(hlog.Get(from_address));
     if(key == record->key()) {
       return from_address;
