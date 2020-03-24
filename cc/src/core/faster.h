@@ -947,6 +947,7 @@ create_record:
       static_cast<uint16_t>(thread_ctx().version), true, false, false,
       expected_entry.address() },
     key };
+  std::cout << "Previous address = " << expected_entry.address().control() << std::endl;
   pending_context.Put(record);
 
   HashBucketEntry updated_entry{ new_address, hash.tag(), false };

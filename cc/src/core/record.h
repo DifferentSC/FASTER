@@ -145,7 +145,7 @@ struct Record {
                                                           // Header, padded to Key alignment.
                                                           pad_alignment(sizeof(RecordInfo), alignof(key_t)),
                                                           alignof(value_t)));
-      std::cout << "disk_size() is called!" << result << std::endl;
+      // std::cout << "disk_size() is called!" << result << std::endl;
     return result;
   }
 
