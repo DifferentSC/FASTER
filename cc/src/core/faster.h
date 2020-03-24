@@ -940,14 +940,14 @@ inline OperationStatus FasterKv<K, V, D>::InternalUpsert(C& pending_context) {
 create_record:
   uint32_t record_size = record_t::size(key, pending_context.value_size());
   Address new_address = BlockAllocate(record_size);
-  std::cout << "New Address = " << new_address.control() << std::endl;
+  // std::cout << "New Address = " << new_address.control() << std::endl;
   record_t* record = reinterpret_cast<record_t*>(hlog.Get(new_address));
   new(record) record_t{
     RecordInfo{
       static_cast<uint16_t>(thread_ctx().version), true, false, false,
       expected_entry.address() },
     key };
-  std::cout << "Previous address = " << expected_entry.address().control() << std::endl;
+  // std::cout << "Previous address = " << expected_entry.address().control() << std::endl;
   pending_context.Put(record);
 
   HashBucketEntry updated_entry{ new_address, hash.tag(), false };

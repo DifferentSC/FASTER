@@ -128,11 +128,12 @@ public:
         }
         std::cout << "GetHash() is called. Hash = " << hash_value << std::endl;
         return KeyHash(static_cast<uint64_t>(hash_value));*/
+        /*
         if (this->temp_buffer != nullptr) {
             return SimpleHash(temp_buffer);
         } else {
             return SimpleHash(buffer());
-        }
+        }*/
     }
 
     inline bool operator==(const ByteArrayKey &other) const {
@@ -448,6 +449,29 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_rea
     }
 }
 
+void InternalDelete(FasterKv<ByteArrayKey, ByteArrayValue, disk_t>* fasterKv, jbyte* key_bytes, uint64_t key_len) {
+    jbyte *copied_key_bytes = (jbyte*) malloc(key_len);
+    memcpy(copied_key_bytes, key_bytes, key_len);
+
+    // Need to read first because it is necessary to get the size of value for DeleteContext.
+    auto read_callback = [](IAsyncContext *ctxt, Status result) {
+        CallbackContext<ReadContext> context{ctxt};
+    };
+    ReadContext read_context{copied_key_bytes, key_len};
+    Status read_result = fasterKv->Read(read_context, read_callback, 1);
+
+    fasterKv->CompletePending(true);
+
+    jbyte *copied_copied_key_bytes = (jbyte*) malloc(key_len);
+    memcpy(copied_copied_key_bytes, key_bytes, key_len);
+
+    auto callback = [](IAsyncContext *ctxt, Status result) {
+        CallbackContext<DeleteContext> context{ctxt};
+    };
+    DeleteContext context{copied_copied_key_bytes, key_len, static_cast<uint64_t>(read_context.length)};
+    Status result = fasterKv->Delete(context, callback, 1);
+}
+
 /*
  * Class:     edu_useoul_streamix_faster_flink_FasterKv
  * Method:    upsert
@@ -459,6 +483,8 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsert
     // Convert jbyteArray to uint8_t array
     uint64_t key_len = env->GetArrayLength(key);
     jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
+    // Delete first because in-place updating variable-sized value is not possible in FasterKv.
+    InternalDelete(fasterKv, key_bytes, key_len);
     jbyte *copied_key_bytes = (jbyte*) malloc(key_len);
     memcpy(copied_key_bytes, key_bytes, key_len);
     uint32_t value_len = env->GetArrayLength(value);
@@ -483,27 +509,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_delete
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
     uint64_t key_len = env->GetArrayLength(key);
     jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
-    jbyte *copied_key_bytes = (jbyte*) malloc(key_len);
-    memcpy(copied_key_bytes, key_bytes, key_len);
-
-    // Need to read first because it is necessary to get the size of value for DeleteContext.
-    auto read_callback = [](IAsyncContext *ctxt, Status result) {
-        CallbackContext<ReadContext> context{ctxt};
-    };
-    ReadContext read_context{copied_key_bytes, key_len};
-    Status read_result = fasterKv->Read(read_context, read_callback, 1);
-
-    fasterKv->CompletePending(true);
-
-    jbyte *copied_copied_key_bytes = (jbyte*) malloc(key_len);
-    memcpy(copied_copied_key_bytes, key_bytes, key_len);
-
-    auto callback = [](IAsyncContext *ctxt, Status result) {
-        CallbackContext<DeleteContext> context{ctxt};
-    };
-    DeleteContext context{copied_copied_key_bytes, key_len, static_cast<uint64_t>(read_context.length)};
-    Status result = fasterKv->Delete(context, callback, 1);
-    assert(result == Status::Ok);
+    InternalDelete(fasterKv, key_bytes, key_len);
     fasterKv->CompletePending(true);
 }
 
