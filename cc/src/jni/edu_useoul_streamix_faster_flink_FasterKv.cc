@@ -455,6 +455,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsert
  */
 JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_delete
         (JNIEnv *env, jobject object, jlong handle, jbyteArray key) {
+    /*
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
     uint64_t key_len = env->GetArrayLength(key);
     jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
@@ -468,7 +469,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_delete
     ReadContext read_context{copied_key_bytes, key_len};
     Status read_result = fasterKv->Read(read_context, read_callback, 1);
 
-    fasterKv->CompletePending(true);
+    fasterKv->CompletePending(true);*/
 
     /*
     jbyte *copied_copied_key_bytes = (jbyte*) malloc(key_len);
