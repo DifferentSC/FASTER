@@ -92,15 +92,15 @@ public:
             : size_(0), length_(0) {
     }
 
-    ByteArrayValue(const ByteArrayValue& other) {
-        length_ = other.length_;
+    ByteArrayValue(const ByteArrayValue& other)
+            : size_(other.size_), length_(other.length_) {
         if (length_ > 0) {
             memcpy(buffer(), other.buffer(), length_);
         }
     }
 
     ~ByteArrayValue() {
-        
+
     }
 
     inline uint32_t size() const {
