@@ -52,7 +52,6 @@ public:
         } else {
             result = KeyHash(Utility::HashBytes(buffer(), static_cast<size_t>(key_length_)));
         }
-        std::cout << "GetHash() is called! hash tag = " << result.tag() << std::endl;
         return result;
     }
 
@@ -95,11 +94,13 @@ public:
 
     ByteArrayValue(const ByteArrayValue& other) {
         length_ = other.length_;
-        memcpy(buffer(), other.buffer(), length_);
+        if (length_ > 0) {
+            memcpy(buffer(), other.buffer(), length_);
+        }
     }
 
     ~ByteArrayValue() {
-
+        
     }
 
     inline uint32_t size() const {
