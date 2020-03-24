@@ -120,9 +120,9 @@ public:
     inline KeyHash GetHash() const {
         KeyHash result;
         if (this->temp_buffer != nullptr) {
-            result = KeyHash(Utility::HashBytes(temp_buffer, static_cast<size_t>(key_length_)));
+            result = SimpleHash(this->temp_buffer);
         } else {
-            result = KeyHash(Utility::HashBytes(buffer(), static_cast<size_t>(key_length_)));
+            result = SimpleHash(buffer());
         }
         return result;
     }
@@ -157,6 +157,22 @@ private:
     inline jbyte *buffer() {
         return reinterpret_cast<jbyte *>(this + 1);
     }
+
+    inline KeyHash SimpleHash(const jbyte* seq) const {
+        uint64_t hash_value =
+                seq[0] << 8
+                + seq[1] << 7
+                + seq[2] << 6
+                + seq[3] << 5
+                + seq[4] << 4
+                + seq[5] << 3
+                + seq[6] << 2
+                + seq[7];
+        return KeyHash(hash_value);
+    }
+
+public:
+    ByteArrayKey(uint64_t keyLength) : key_length_(keyLength) {}
 };
 
 class ByteArrayValue {
