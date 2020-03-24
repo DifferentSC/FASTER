@@ -385,8 +385,8 @@ JNIEXPORT jlong JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_open
     std::string filename = std::string(cstr);
     FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *fasterKv
             = new FasterKv<ByteArrayKey, ByteArrayValue, disk_t>(
-                    static_cast<uint64_t>(table_size),
-                    static_cast<uint64_t>(log_size),
+                    128,
+                    268435456,
                     "");
     fasterKv->StartSession();
     return reinterpret_cast<jlong>(fasterKv);
