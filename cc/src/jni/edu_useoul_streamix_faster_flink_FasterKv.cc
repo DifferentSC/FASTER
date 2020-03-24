@@ -10,6 +10,78 @@
 using namespace std;
 using namespace FASTER::core;
 
+class GenLock {
+public:
+    GenLock()
+            : control_{ 0 } {
+    }
+    GenLock(uint64_t control)
+            : control_{ control } {
+    }
+    inline GenLock& operator=(const GenLock& other) {
+        control_ = other.control_;
+        return *this;
+    }
+
+    union {
+        struct {
+            uint64_t gen_number : 62;
+            uint64_t locked : 1;
+            uint64_t replaced : 1;
+        };
+        uint64_t control_;
+    };
+};
+static_assert(sizeof(GenLock) == 8, "sizeof(GenLock) != 8");
+
+class AtomicGenLock {
+public:
+    AtomicGenLock()
+            : control_{ 0 } {
+    }
+    AtomicGenLock(uint64_t control)
+            : control_{ control } {
+    }
+
+    inline GenLock load() const {
+        return GenLock{ control_.load() };
+    }
+    inline void store(GenLock desired) {
+        control_.store(desired.control_);
+    }
+
+    inline bool try_lock(bool& replaced) {
+        replaced = false;
+        GenLock expected{ control_.load() };
+        expected.locked = 0;
+        expected.replaced = 0;
+        GenLock desired{ expected.control_ };
+        desired.locked = 1;
+
+        if(control_.compare_exchange_strong(expected.control_, desired.control_)) {
+            return true;
+        }
+        if(expected.replaced) {
+            replaced = true;
+        }
+        return false;
+    }
+    inline void unlock(bool replaced) {
+        if(!replaced) {
+            // Just turn off "locked" bit and increase gen number.
+            uint64_t sub_delta = ((uint64_t)1 << 62) - 1;
+            control_.fetch_sub(sub_delta);
+        } else {
+            // Turn off "locked" bit, turn on "replaced" bit, and increase gen number
+            uint64_t add_delta = ((uint64_t)1 << 63) - ((uint64_t)1 << 62) + 1;
+            control_.fetch_add(add_delta);
+        }
+    }
+
+private:
+    std::atomic<uint64_t> control_;
+};
+
 class ByteArrayKey {
 public:
 
@@ -87,18 +159,18 @@ private:
     }
 };
 
-class alignas(16) ByteArrayValue {
+class ByteArrayValue {
 public:
     ByteArrayValue()
-            : size_(0), length_(0) {
+            : gen_lock_{0}, size_(0), length_(0) {
     }
-
+    /*
     ByteArrayValue(const ByteArrayValue& other)
-            : size_(other.size_), length_(other.length_) {
+            : gen_lock_(0), size_(other.size_), length_(other.length_) {
         if (length_ > 0) {
             memcpy(buffer(), other.buffer(), length_);
         }
-    }
+    }*/
 
     ~ByteArrayValue() {
 
@@ -126,6 +198,7 @@ public:
     friend class UpsertContext;
 
 private:
+    AtomicGenLock gen_lock_;
     uint32_t size_;
     uint32_t length_;
 
@@ -174,15 +247,20 @@ public:
     }
 
     inline void GetAtomic(const ByteArrayValue &value) {
-        // No concurrent read happens - so just use Get()
-        if (value.length_ != 0) {
-            length = value.length_;
-            output = (jbyte*) malloc(value.length_);
-            memcpy(output, value.buffer(), value.length_);
-        } else {
-            length = 0;
-            output = nullptr;
-        }
+        GenLock before, after;
+        do {
+            before = value.gen_lock_.load();
+            // No concurrent read happens - so just use Get()
+            if (value.length_ != 0) {
+                length = value.length_;
+                output = (jbyte *) malloc(value.length_);
+                memcpy(output, value.buffer(), value.length_);
+            } else {
+                length = 0;
+                output = nullptr;
+            }
+            after = value.gen_lock_.load();
+        } while(before.gen_number != after.gen_number);
     }
 
 protected:
@@ -216,7 +294,6 @@ public:
 
     }
 
-
     inline const ByteArrayKey &key() const {
         return key_;
     }
@@ -233,10 +310,17 @@ public:
     }
 
     inline bool PutAtomic(ByteArrayValue &value) {
-        // Assume no concurrent put.
+        bool replaced;
+        while (!value.gen_lock_.try_lock(replaced) && !replaced) {
+            std::this_thread::yield();
+        }
+        if (replaced) {
+            return false;
+        }
         value.size_ = sizeof(ByteArrayValue) + length_;
         value.length_ = length_;
         memcpy(value.buffer(), value_byte_, length_);
+        value.gen_lock_.unlock(false);
         return true;
     }
 
