@@ -56,8 +56,8 @@ public:
     }
 
     inline bool operator==(const ByteArrayKey &other) const {
-        std::cout << "other.key_length_ = " << other.key_length_ << std::endl;
-        std::cout << "is other.temp_buffer = nullptr? " << (other.temp_buffer != nullptr) << std::endl;
+        // std::cout << "other.key_length_ = " << other.key_length_ << std::endl;
+        std::cout << "is other.temp_buffer == nullptr? " << (other.temp_buffer == nullptr) << std::endl;
         if (this->key_length_ != other.key_length_) return false;
 
         if (this->temp_buffer != nullptr) {
