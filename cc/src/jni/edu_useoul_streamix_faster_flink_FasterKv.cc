@@ -125,7 +125,7 @@ public:
         } else {
             MurmurHash3_x86_32(static_cast<const void*>(buffer()), key_length_, 0, &hash_value);
         }
-        std::cout << "GetHash() is called. Hash = " << hash_value << std::endl;
+        // std::cout << "GetHash() is called. Hash = " << hash_value << std::endl;
         return KeyHash(static_cast<uint64_t>(hash_value));
         /*
         if (this->temp_buffer != nullptr) {
