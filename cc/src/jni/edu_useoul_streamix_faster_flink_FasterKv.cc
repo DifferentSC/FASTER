@@ -119,7 +119,6 @@ public:
     }
 
     inline KeyHash GetHash() const {
-        /*
         uint32_t hash_value;
         if (this->temp_buffer != nullptr) {
             MurmurHash3_x86_32(static_cast<const void*>(temp_buffer), key_length_, 0, &hash_value);
@@ -127,7 +126,7 @@ public:
             MurmurHash3_x86_32(static_cast<const void*>(buffer()), key_length_, 0, &hash_value);
         }
         std::cout << "GetHash() is called. Hash = " << hash_value << std::endl;
-        return KeyHash(static_cast<uint64_t>(hash_value));*/
+        return KeyHash(static_cast<uint64_t>(hash_value));
         /*
         if (this->temp_buffer != nullptr) {
             return SimpleHash(temp_buffer);
