@@ -347,17 +347,19 @@ public:
             : key_{key, key_length}, length_(value_length) {
     }
 
-    DeleteContext(const DeleteContext &other)
-            : key_{other.key_}, length_(other.length_) {
+    DeleteContext(const DeleteContext &other) {
+        key_ = other.key_;
+        length_ = other.length_;
     }
 
     inline const ByteArrayKey& key() const {
         return key_;
     }
 
+    /*
     inline uint32_t value_size() const {
         return sizeof(ByteArrayValue) + length_;
-    }
+    }*/
 
 protected:
     /// The explicit interface requires a DeepCopy_Internal() implementation.
