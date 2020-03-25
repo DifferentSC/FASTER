@@ -396,8 +396,8 @@ private:
 };
 
 typedef FASTER::environment::QueueIoHandler handler_t;
-// typedef FASTER::device::FileSystemDisk<handler_t, 1073741824ull> disk_t;
-typedef FASTER::device::NullDisk disk_t;
+typedef FASTER::device::FileSystemDisk<handler_t, 1073741824ull> disk_t;
+// typedef FASTER::device::NullDisk disk_t;
 
 /*
  * Class:     edu_useoul_streamix_faster_flink_FasterKv
@@ -410,9 +410,9 @@ JNIEXPORT jlong JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_open
     std::string filename = std::string(cstr);
     FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *fasterKv
             = new FasterKv<ByteArrayKey, ByteArrayValue, disk_t>(
-                    128,
-                    268435456,
-                    "");
+                    table_size,
+                    log_size,
+                    filename);
     fasterKv->StartSession();
     return reinterpret_cast<jlong>(fasterKv);
 }
@@ -439,7 +439,7 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_rea
     if (result == Status::NotFound) {
         return nullptr;
     } if (result == Status::Pending) {
-        // fasterKv->CompletePending(true);
+        fasterKv->CompletePending(true);
         // std::cout << "Status: Pending" << std::endl;
     } else {
         jbyteArray javaBytes = env->NewByteArray(context.length);
@@ -459,7 +459,9 @@ void InternalDelete(FasterKv<ByteArrayKey, ByteArrayValue, disk_t>* fasterKv, jb
     ReadContext read_context{copied_key_bytes, key_len};
     Status read_result = fasterKv->Read(read_context, read_callback, 1);
 
-    // fasterKv->CompletePending(true);
+    if (read_result == Status::Pending) {
+        fasterKv->CompletePending(true);
+    }
 
     jbyte *copied_copied_key_bytes = (jbyte*) malloc(key_len);
     memcpy(copied_copied_key_bytes, key_bytes, key_len);
