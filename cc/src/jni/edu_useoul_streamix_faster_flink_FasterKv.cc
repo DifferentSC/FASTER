@@ -271,6 +271,11 @@ public:
     }
 
     inline void GetAtomic(const ByteArrayValue &value) {
+        return Get(value);
+    }
+
+    /*
+    inline void GetAtomic(const ByteArrayValue &value) {
         GenLock before, after;
         do {
             before = value.gen_lock_.load();
@@ -285,7 +290,7 @@ public:
             }
             after = value.gen_lock_.load();
         } while(before.gen_number != after.gen_number);
-    }
+    }*/
 
 protected:
     Status DeepCopy_Internal(IAsyncContext *&context_copy) {
@@ -334,6 +339,11 @@ public:
     }
 
     inline bool PutAtomic(ByteArrayValue &value) {
+        Put(value);
+    }
+
+    /*
+    inline bool PutAtomic(ByteArrayValue &value) {
         bool replaced;
         while (!value.gen_lock_.try_lock(replaced) && !replaced) {
             std::this_thread::yield();
@@ -346,7 +356,7 @@ public:
         memcpy(value.buffer(), value_byte_, length_);
         value.gen_lock_.unlock(false);
         return true;
-    }
+    }*/
 
 protected:
     /// The explicit interface requires a DeepCopy_Internal() implementation.
@@ -431,7 +441,7 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_rea
     jbyte *copied_key_bytes = (jbyte*) malloc(key_len);
     memcpy(copied_key_bytes, key_bytes, key_len);
     auto callback = [](IAsyncContext *ctxt, Status result) {
-        std::cout << "Read callback is called!" << endl;
+        // std::cout << "Read callback is called!" << endl;
         CallbackContext<ReadContext> context{ctxt};
     };
     ReadContext context{copied_key_bytes, key_len};
