@@ -10,7 +10,7 @@ extern "C" {
 /*
  * Class:     edu_useoul_streamix_faster_flink_FasterKv
  * Method:    open
- * Signature: (IILjava/lang/String;)J
+ * Signature: (IJLjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_open
   (JNIEnv *, jobject, jint, jlong, jstring);
@@ -37,6 +37,14 @@ JNIEXPORT jbyteArray JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_rea
  * Signature: (J[B[B)V
  */
 JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsert
+  (JNIEnv *, jobject, jlong, jbyteArray, jbyteArray);
+
+/*
+ * Class:     edu_useoul_streamix_faster_flink_FasterKv
+ * Method:    upsertFixedLength
+ * Signature: (J[B[B)V
+ */
+JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsertFixedLength
   (JNIEnv *, jobject, jlong, jbyteArray, jbyteArray);
 
 /*

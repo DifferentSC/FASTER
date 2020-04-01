@@ -876,9 +876,9 @@ inline OperationStatus FasterKv<K, V, D>::InternalUpsert(C& pending_context) {
       if(latest_record_version > thread_ctx().version) {
         // CPR shift detected: we are in the "PREPARE" phase, and a record has a version later than
         // what we've seen.
-        pending_context.go_async(thread_ctx().phase, thread_ctx().version, address,
+            pending_context.go_async(thread_ctx().phase, thread_ctx().version, address,
                                  expected_entry);
-        return OperationStatus::CPR_SHIFT_DETECTED;
+         return OperationStatus::CPR_SHIFT_DETECTED;
       }
     }
     break;

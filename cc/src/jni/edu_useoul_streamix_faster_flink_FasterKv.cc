@@ -511,6 +511,29 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsert
 
 /*
  * Class:     edu_useoul_streamix_faster_flink_FasterKv
+ * Method:    upsertFixedLength
+ * Signature: (J[B[B)V
+ */
+JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsertFixedLength
+        (JNIEnv *env, jobject object, jlong handle, jbyteArray key, jbyteArray value) {
+    auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
+    // Convert jbyteArray to uint8_t array
+    uint64_t key_len = env->GetArrayLength(key);
+    jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
+    // Do not delete because we assume the length of value doesn't change.
+    jbyte *copied_key_bytes = (jbyte*) malloc(key_len);
+    memcpy(copied_key_bytes, key_bytes, key_len);
+    uint32_t value_len = env->GetArrayLength(value);
+    jbyte *value_bytes = env->GetByteArrayElements(value, nullptr);
+    auto callback = [](IAsyncContext *ctxt, Status result) {
+        CallbackContext<UpsertContext> context{ctxt};
+    };
+    UpsertContext context{copied_key_bytes, key_len, value_bytes, value_len};
+    Status result = fasterKv->Upsert(context, callback, 1);
+}
+
+/*
+ * Class:     edu_useoul_streamix_faster_flink_FasterKv
  * Method:    delete
  * Signature: (J[B)V
  */
