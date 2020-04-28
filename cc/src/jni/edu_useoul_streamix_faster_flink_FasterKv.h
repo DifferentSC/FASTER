@@ -61,7 +61,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_delete
  * Signature: (J[B[B)V
  */
 JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_append
-  (JNIEnv *env, jobject object, jlong handle, jbyteArray key, jbyteArray value);
+  (JNIEnv *, jobject, jlong, jbyteArray, jbyteArray);
 
 #ifdef __cplusplus
 }
