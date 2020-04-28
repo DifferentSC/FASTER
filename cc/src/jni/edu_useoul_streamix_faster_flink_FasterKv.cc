@@ -11,78 +11,6 @@
 using namespace std;
 using namespace FASTER::core;
 
-class GenLock {
-public:
-    GenLock()
-            : control_{ 0 } {
-    }
-    GenLock(uint64_t control)
-            : control_{ control } {
-    }
-    inline GenLock& operator=(const GenLock& other) {
-        control_ = other.control_;
-        return *this;
-    }
-
-    union {
-        struct {
-            uint64_t gen_number : 62;
-            uint64_t locked : 1;
-            uint64_t replaced : 1;
-        };
-        uint64_t control_;
-    };
-};
-static_assert(sizeof(GenLock) == 8, "sizeof(GenLock) != 8");
-
-class AtomicGenLock {
-public:
-    AtomicGenLock()
-            : control_{ 0 } {
-    }
-    AtomicGenLock(uint64_t control)
-            : control_{ control } {
-    }
-
-    inline GenLock load() const {
-        return GenLock{ control_.load() };
-    }
-    inline void store(GenLock desired) {
-        control_.store(desired.control_);
-    }
-
-    inline bool try_lock(bool& replaced) {
-        replaced = false;
-        GenLock expected{ control_.load() };
-        expected.locked = 0;
-        expected.replaced = 0;
-        GenLock desired{ expected.control_ };
-        desired.locked = 1;
-
-        if(control_.compare_exchange_strong(expected.control_, desired.control_)) {
-            return true;
-        }
-        if(expected.replaced) {
-            replaced = true;
-        }
-        return false;
-    }
-    inline void unlock(bool replaced) {
-        if(!replaced) {
-            // Just turn off "locked" bit and increase gen number.
-            uint64_t sub_delta = ((uint64_t)1 << 62) - 1;
-            control_.fetch_sub(sub_delta);
-        } else {
-            // Turn off "locked" bit, turn on "replaced" bit, and increase gen number
-            uint64_t add_delta = ((uint64_t)1 << 63) - ((uint64_t)1 << 62) + 1;
-            control_.fetch_add(add_delta);
-        }
-    }
-
-private:
-    std::atomic<uint64_t> control_;
-};
-
 class ByteArrayKey {
 public:
 
@@ -127,12 +55,6 @@ public:
         }
         // std::cout << "GetHash() is called. Hash = " << hash_value << std::endl;
         return KeyHash(static_cast<uint64_t>(hash_value));
-        /*
-        if (this->temp_buffer != nullptr) {
-            return SimpleHash(temp_buffer);
-        } else {
-            return SimpleHash(buffer());
-        }*/
     }
 
     inline bool operator==(const ByteArrayKey &other) const {
@@ -186,15 +108,15 @@ public:
 class ByteArrayValue {
 public:
     ByteArrayValue()
-            : gen_lock_{0}, size_(0), length_(0) {
+            : size_(0), length_(0) {
     }
-    /*
+
     ByteArrayValue(const ByteArrayValue& other)
-            : gen_lock_(0), size_(other.size_), length_(other.length_) {
+            : size_(other.size_), length_(other.length_) {
         if (length_ > 0) {
             memcpy(buffer(), other.buffer(), length_);
         }
-    }*/
+    }
 
     ~ByteArrayValue() {
 
@@ -220,9 +142,9 @@ public:
 
     friend class ReadContext;
     friend class UpsertContext;
+    friend class AppendContext;
 
 private:
-    AtomicGenLock gen_lock_;
     uint32_t size_;
     uint32_t length_;
 
@@ -274,24 +196,6 @@ public:
         return Get(value);
     }
 
-    /*
-    inline void GetAtomic(const ByteArrayValue &value) {
-        GenLock before, after;
-        do {
-            before = value.gen_lock_.load();
-            // No concurrent read happens - so just use Get()
-            if (value.length_ != 0) {
-                length = value.length_;
-                output = (jbyte *) malloc(value.length_);
-                memcpy(output, value.buffer(), value.length_);
-            } else {
-                length = 0;
-                output = nullptr;
-            }
-            after = value.gen_lock_.load();
-        } while(before.gen_number != after.gen_number);
-    }*/
-
 protected:
     Status DeepCopy_Internal(IAsyncContext *&context_copy) {
         return IAsyncContext::DeepCopy_Internal(*this, context_copy);
@@ -342,22 +246,6 @@ public:
         Put(value);
     }
 
-    /*
-    inline bool PutAtomic(ByteArrayValue &value) {
-        bool replaced;
-        while (!value.gen_lock_.try_lock(replaced) && !replaced) {
-            std::this_thread::yield();
-        }
-        if (replaced) {
-            return false;
-        }
-        value.size_ = sizeof(ByteArrayValue) + length_;
-        value.length_ = length_;
-        memcpy(value.buffer(), value_byte_, length_);
-        value.gen_lock_.unlock(false);
-        return true;
-    }*/
-
 protected:
     /// The explicit interface requires a DeepCopy_Internal() implementation.
     Status DeepCopy_Internal(IAsyncContext *&context_copy) {
@@ -369,6 +257,60 @@ private:
     ByteArrayKey key_;
     jbyte* value_byte_;
     uint64_t length_;
+};
+
+class AppendContext : public IAsyncContext {
+public:
+    typedef ByteArrayKey key_t;
+    typedef ByteArrayValue value_t;
+
+    AppendContext(jbyte* key, uint64_t key_length, jbyte* add_byte, uint64_t add_length)
+            : key_{key, key_length}, add_byte_(add_byte), add_length_(add_length) {
+    }
+
+    AppendContext(const AppendContext &other)
+            : key_{other.key_}, add_byte_(other.add_byte_), add_length_(other.add_length_) {
+    }
+
+    const ByteArrayKey& key() const {
+        return key_;
+    }
+    inline constexpr uint32_t value_size() {
+        return sizeof(ByteArrayValue) + add_length_;
+    }
+
+    inline constexpr uint32_t value_size(const value_t& old_value) {
+        return sizeof(ByteArrayValue) + old_value.length_ + add_length_;
+    }
+
+    inline void RmwInitial(value_t& value) {
+        value.size_ = sizeof(ByteArrayValue) + add_length_;
+        value.length_ = add_length_;
+        memcpy(value.buffer(), add_byte_, add_length_);
+    }
+
+    inline void RmwCopy(const value_t& old_value, value_t& value) {
+        value.size_ = sizeof(ByteArrayValue) + old_value.length_ + add_length_;
+        value.length_ = old_value.length_ + add_length_;
+        memcpy(value.buffer(), old_value.buffer(), old_value.length_);
+        memcpy(value.buffer() + old_value.length_, add_byte_, add_length_);
+    }
+
+    inline bool RmwAtomic(value_t& value) {
+        // All Append operations should use Read-Copy-Update, because its length consistently changes.
+        return false;
+    }
+
+protected:
+    /// The explicit interface requires a DeepCopy_Internal() implementation.
+    Status DeepCopy_Internal(IAsyncContext*& context_copy) {
+        return IAsyncContext::DeepCopy_Internal(*this, context_copy);
+    }
+
+private:
+    ByteArrayKey key_;
+    jbyte* add_byte_;
+    const uint64_t add_length_;
 };
 
 class DeleteContext : public IAsyncContext {
@@ -544,6 +486,28 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_delete
     uint64_t key_len = env->GetArrayLength(key);
     jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
     InternalDelete(fasterKv, key_bytes, key_len);
+    // fasterKv->CompletePending(true);
+}
+
+/*
+ * Class:     edu_useoul_streamix_faster_flink_FasterKv
+ * Method:    delete
+ * Signature: (J[B)V
+ */
+JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_append
+        (JNIEnv *env, jobject object, jlong handle, jbyteArray key, jbyteArray value) {
+
+    auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
+    uint64_t key_len = env->GetArrayLength(key);
+    jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
+    uint32_t value_len = env->GetArrayLength(value);
+    jbyte *value_bytes = env->GetByteArrayElements(value, nullptr);
+    auto callback = [](IAsyncContext *ctxt, Status result) {
+        CallbackContext<AppendContext> context{ctxt};
+    };
+    AppendContext context{key_bytes, key_len, value_bytes, value_len};
+    Status result = fasterKv->Rmw(context, callback, 1);
+    // InternalDelete(fasterKv, key_bytes, key_len)
     // fasterKv->CompletePending(true);
 }
 
