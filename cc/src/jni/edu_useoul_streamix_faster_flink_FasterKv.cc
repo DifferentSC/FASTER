@@ -275,11 +275,11 @@ public:
     const ByteArrayKey& key() const {
         return key_;
     }
-    inline constexpr uint32_t value_size() {
+    inline uint32_t value_size() const {
         return sizeof(ByteArrayValue) + add_length_;
     }
 
-    inline constexpr uint32_t value_size(const value_t& old_value) {
+    inline uint32_t value_size(const value_t& old_value) const {
         return sizeof(ByteArrayValue) + old_value.length_ + add_length_;
     }
 
