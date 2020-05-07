@@ -88,19 +88,6 @@ private:
         return reinterpret_cast<jbyte *>(this + 1);
     }
 
-    inline KeyHash SimpleHash(const jbyte* seq) const {
-        uint64_t hash_value =
-                seq[0] << 8
-                + seq[1] << 7
-                + seq[2] << 6
-                + seq[3] << 5
-                + seq[4] << 4
-                + seq[5] << 3
-                + seq[6] << 2
-                + seq[7];
-        return KeyHash(hash_value);
-    }
-
 public:
     ByteArrayKey(uint64_t keyLength) : key_length_(keyLength) {}
 };
@@ -208,6 +195,7 @@ public:
     uint64_t length;
 };
 
+/*
 class UpsertContext : public IAsyncContext {
 
 public:
@@ -257,7 +245,7 @@ private:
     ByteArrayKey key_;
     jbyte* value_byte_;
     uint64_t length_;
-};
+};*/
 
 class AppendContext : public IAsyncContext {
 public:
@@ -311,6 +299,60 @@ private:
     ByteArrayKey key_;
     jbyte* add_byte_;
     const uint64_t add_length_;
+};
+
+class UpsertContext : public IAsyncContext {
+public:
+    typedef ByteArrayKey key_t;
+    typedef ByteArrayValue value_t;
+
+    UpsertContext(jbyte* key, uint64_t key_length, jbyte* new_byte, uint64_t new_length)
+            : key_{key, key_length}, new_byte_(new_byte), new_length_(new_length) {
+    }
+
+    UpsertContext(const UpsertContext &other)
+            : key_{other.key_}, new_byte_(other.new_byte_), new_length_(other.new_length_) {
+    }
+
+    const ByteArrayKey& key() const {
+        return key_;
+    }
+
+    inline uint32_t value_size() const {
+        return sizeof(ByteArrayValue) + new_length_;
+    }
+
+    inline uint32_t value_size(const value_t& old_value) const {
+        return sizeof(ByteArrayValue) + new_length_;
+    }
+
+    inline void RmwInitial(value_t& value) {
+        value.size_ = sizeof(ByteArrayValue) + new_length_;
+        value.length_ = new_length_;
+        memcpy(value.buffer(), new_byte_, new_length_);
+    }
+
+    inline void RmwCopy(const value_t& old_value, value_t& value) {
+        value.size_ = sizeof(ByteArrayValue) + new_length_;
+        value.length_ = new_length_;
+        memcpy(value.buffer() + old_value.length_, new_byte_, new_length_);
+    }
+
+    inline bool RmwAtomic(value_t& value) {
+        // All Append operations should use Read-Copy-Update, because its length consistently changes.
+        return false;
+    }
+
+protected:
+    /// The explicit interface requires a DeepCopy_Internal() implementation.
+    Status DeepCopy_Internal(IAsyncContext*& context_copy) {
+        return IAsyncContext::DeepCopy_Internal(*this, context_copy);
+    }
+
+private:
+    ByteArrayKey key_;
+    jbyte* new_byte_;
+    const uint64_t new_length_;
 };
 
 class DeleteContext : public IAsyncContext {
@@ -437,7 +479,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsert
     uint64_t key_len = env->GetArrayLength(key);
     jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
     // Delete first because in-place updating variable-sized value is not possible in FasterKv.
-    InternalDelete(fasterKv, key_bytes, key_len);
+    // InternalDelete(fasterKv, key_bytes, key_len);
     jbyte *copied_key_bytes = (jbyte*) malloc(key_len);
     memcpy(copied_key_bytes, key_bytes, key_len);
     uint32_t value_len = env->GetArrayLength(value);
@@ -446,7 +488,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsert
         CallbackContext<UpsertContext> context{ctxt};
     };
     UpsertContext context{copied_key_bytes, key_len, value_bytes, value_len};
-    Status result = fasterKv->Upsert(context, callback, 1);
+    Status result = fasterKv->Rmw(context, callback, 1);
     // fasterKv->CompletePending(true);
     // assert(result == Status::Ok);
 }
@@ -500,6 +542,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_append
     auto fasterKv = reinterpret_cast<FasterKv<ByteArrayKey, ByteArrayValue, disk_t> *>(handle);
     uint64_t key_len = env->GetArrayLength(key);
     jbyte *key_bytes = env->GetByteArrayElements(key, nullptr);
+
     uint32_t value_len = env->GetArrayLength(value);
     jbyte *value_bytes = env->GetByteArrayElements(value, nullptr);
     auto callback = [](IAsyncContext *ctxt, Status result) {
