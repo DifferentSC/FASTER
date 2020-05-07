@@ -129,6 +129,7 @@ public:
 
     friend class ReadContext;
     friend class UpsertContext;
+    friend class FixedUpsertContext;
     friend class AppendContext;
 
 private:
@@ -195,23 +196,22 @@ public:
     uint64_t length;
 };
 
-/*
-class UpsertContext : public IAsyncContext {
+class FixedUpsertContext : public IAsyncContext {
 
 public:
 
     typedef ByteArrayKey key_t;
     typedef ByteArrayValue value_t;
 
-    UpsertContext(jbyte *key, uint64_t key_length, jbyte *value, uint64_t value_length)
+    FixedUpsertContext(jbyte *key, uint64_t key_length, jbyte *value, uint64_t value_length)
             : key_{key, key_length}, value_byte_(value), length_(value_length) {
     }
 
-    UpsertContext(const UpsertContext &other)
+    FixedUpsertContext(const FixedUpsertContext &other)
             : key_{other.key_}, value_byte_(other.value_byte_), length_(other.length_) {
     }
 
-    ~UpsertContext() {
+    ~FixedUpsertContext() {
 
     }
 
@@ -245,7 +245,7 @@ private:
     ByteArrayKey key_;
     jbyte* value_byte_;
     uint64_t length_;
-};*/
+};
 
 class AppendContext : public IAsyncContext {
 public:
@@ -512,7 +512,7 @@ JNIEXPORT void JNICALL Java_edu_useoul_streamix_faster_1flink_FasterKv_upsertFix
     auto callback = [](IAsyncContext *ctxt, Status result) {
         CallbackContext<UpsertContext> context{ctxt};
     };
-    UpsertContext context{copied_key_bytes, key_len, value_bytes, value_len};
+    FixedUpsertContext context{copied_key_bytes, key_len, value_bytes, value_len};
     Status result = fasterKv->Upsert(context, callback, 1);
 }
 
