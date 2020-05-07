@@ -335,7 +335,7 @@ public:
     inline void RmwCopy(const value_t& old_value, value_t& value) {
         value.size_ = sizeof(ByteArrayValue) + new_length_;
         value.length_ = new_length_;
-        memcpy(value.buffer() + old_value.length_, new_byte_, new_length_);
+        memcpy(value.buffer(), new_byte_, new_length_);
     }
 
     inline bool RmwAtomic(value_t& value) {
